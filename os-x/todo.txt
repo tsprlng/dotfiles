@@ -1,0 +1,53 @@
+menumeters
+
+chrome
+https://dl-ssl.google.com/chrome/extensions/at_mulberryv2.crx
+
+karabiner/seil
+
+smoothmouse
+
+brew  # ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+zsh git tig
+maven python pcre dos2unix
+s3cmd mongodb cassandra
+
+defaults write org.eclipse.eclipse AppleAntiAliasingThreshold 20
+
+my oh-my-zsh
+
+don’t auto-adjust brightness
+always scrollbars
+scaling adjust
+system dvorak
+
+no sodding autocomplete
+tab all controls
+
+don’t autorearrange spaces
+don’t group windows by app
+#dup: defaults write com.apple.dock workspaces-auto-swoosh -bool NO
+
+
+defaults write -g com.apple.swipescrolldirection -bool FALSE
+
+
+defaults write com.apple.dashboard mcx-disabled -bool YES
+
+defaults write com.apple.dock expose-animation-duration -float 0.1
+defaults write com.apple.dock autohide-delay -float 6
+defaults write com.apple.dock autohide-time-modifier -float 0.1
+defaults write com.apple.dock autohide -bool YES
+
+defaults write com.apple.dock pinning -string end
+defaults write com.apple.dock position-immutable -bool YES
+defaults write com.apple.dock orientation -string right
+
+defaults write com.apple.dock showhidden -bool YES
+defaults write com.apple.dock workspaces-auto-swoosh -bool NO
+defaults write com.apple.dock mineffect -string suck
+killall Dock
+
+
+## finder path file:///~
+defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool YES

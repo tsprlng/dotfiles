@@ -1,0 +1,16 @@
+[user]
+	name = Tom Spurling
+	email = <%= defaults.orPrompt 'git.email' %>
+[core]
+	excludesfile = /Users/tim/.gitignore-global
+[push]
+	default = simple
+[color]
+	ui = true
+[alias]
+	ignore = !git update-index --assume-unchanged
+	unignore = !git update-index --no-assume-unchanged
+	ignored = !git ls-files -v | grep ^[a-z]
+[rebase]
+	autosquash = true
+	stat = true
