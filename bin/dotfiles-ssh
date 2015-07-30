@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+
+exec "ssh -t #{ARGV[0]} zsh -il"
