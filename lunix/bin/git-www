@@ -1,0 +1,11 @@
+#!/usr/bin/ruby
+remote = `git config remote.origin.url`
+if remote.match /.*@([^:]+):(.*)\.git/
+  puts url = "http://#{$~[1]}/#{$~[2]}"
+  `open #{url}`
+elsif remote.match /[^@]*@(.*)\.git/
+  puts url = "http://#{$~[1]}"
+  `open #{url}`
+else
+  puts 'i am confused about ' + remote
+end

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gnome-screensaver-command -l; sleep 1; xset dpms force off

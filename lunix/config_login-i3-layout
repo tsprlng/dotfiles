@@ -1,0 +1,53 @@
+{
+    "layout": "splitv",
+    "percent": 0.5,
+    "type": "con",
+    "nodes": [
+        {
+            "border": "normal",
+            "current_border_width": 2,
+            "floating": "auto_off",
+            //"geometry": {
+            //   "height": 1881,
+            //   "width": 1076,
+            //   "x": 0,
+            //   "y": 0
+            //},
+            "name": "Firefox",
+            "percent": 0.4,
+            "swallows": [
+               {
+                  "class": "^Firefox$",
+                  "instance": "^Navigator$",
+               // "title": "^Ubuntu\\ Start\\ Page\\ \\-\\ Mozilla\\ Firefox$",
+               // "transient_for": "^$",
+                  "window_role": "^browser$"
+               }
+            ],
+            "type": "con"
+        },
+        {
+            "border": "normal",
+            "current_border_width": 2,
+            "floating": "auto_off",
+            //"geometry": {
+            //   "height": 1881,
+            //   "width": 1076,
+            //   "x": 2,
+            //   "y": 258
+            //},
+            "name": "Slack",
+            "percent": 0.6,
+            "swallows": [
+               {
+                  "class": "^Slack$",
+                  "instance": "^slack$",
+               // "title": "^Slack\\ \\-\\ MOO$",
+               // "transient_for": "^$",
+                  "window_role": "^browser\\-window$"
+               }
+            ],
+            "type": "con"
+        }
+    ]
+}

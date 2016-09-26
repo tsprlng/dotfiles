@@ -1,0 +1,12 @@
+xrandr --output DP2 --rotate left --left-of DP1
+xrandr --output DP2 --pos 0x240
+
+setxkbmap -option -option caps:backspace -option shift:both_capslock -option numpad:mac
+#setxkbmap -option -option caps:backspace -option shift:both_capslock -option numpad:mac -option ctrl:swap_lalt_lctl_lwin #-option ctrl:menu_rctrl -option ctrl:rctrl_ralt
+
+mkdir -p /home/toms/.xkb/keymap
+setxkbmap -print | sed -e '/xkb_symbols/s/"[[:space:]]/+local&/' > /home/toms/.xkb/keymap/custom
+xkbcomp -w0 -I/home/toms/.xkb/ -R/home/toms/.xkb/ keymap/custom $DISPLAY
+
+xsri --tile=/home/toms/Pictures/leave-it.png
+#xsri --tile=/home/toms/Pictures/i3help.png

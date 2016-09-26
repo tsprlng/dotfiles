@@ -1,0 +1,2 @@
+#!/bin/bash
+tig {,origin/}$(git symbolic-ref HEAD --short)

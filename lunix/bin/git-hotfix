@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+git checkout --track -b $1 origin/$2 || git checkout --track -b $1 origin/master
