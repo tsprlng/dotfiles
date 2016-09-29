@@ -13,6 +13,10 @@ set $mod Mod4
 
 workspace 10 output DP2
 
+bindsym XF86AudioRaiseVolume exec /home/tds/bin/volume up
+bindsym XF86AudioLowerVolume exec /home/tds/bin/volume down
+bindsym XF86AudioMute exec /home/tds/bin/volume mute
+
 bindsym $mod+Shift+Pause exec --no-startup-id /home/toms/bin/lock
 
 exec /bin/bash /home/toms/.config/toms-special-i3-loginrc

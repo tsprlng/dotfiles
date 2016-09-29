@@ -1,0 +1,33 @@
+#!/bin/bash
+
+exec 2>/dev/null
+
+get() {
+pactl list sinks | grep -e Volume -e 'Mute.*yes' | egrep -o -e Mute -e '[0123456789]+%'| head -n 1
+}
+
+notify() {
+ it=$(get)
+ if [[ "$it" =~ M ]]; then
+  volnoti-show -m || true
+ else
+  volnoti-show "$it" || true
+ fi
+}
+
+if [[ "$@" =~ up ]]; then
+  pactl set-sink-volume @DEFAULT_SINK@ '+5%'
+  notify
+elif [[ "$@" =~ down ]]; then
+  pactl set-sink-volume @DEFAULT_SINK@ '-5%'
+  notify
+elif [[ "$@" =~ mute ]]; then
+  pactl set-sink-mute @DEFAULT_SINK@ toggle
+  notify
+elif [[ "$@" =~ notify ]]; then
+  notify
+else
+  get
+fi
+
+exit 0
