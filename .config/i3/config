@@ -187,7 +187,7 @@ bar {
 		focused_workspace #ff00ff #aa00aa #ffffff
 		separator #111111
 	}
-	status_command i3status
+	status_command tom-i3status
 	#separator_symbol ——
 	separator_symbol " "
 	tray_output primary
