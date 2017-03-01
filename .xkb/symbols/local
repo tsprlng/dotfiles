@@ -1,0 +1,10 @@
+partial modifier_keys
+xkb_symbols "local" {
+  replace key <LCTL> { [ Super_L ] };
+  replace key <LWIN> { [ Alt_L ] };
+  replace key <LALT> { [ Control_L ] };
+  replace key <RALT> { [ Control_R ] };
+  replace key <PRSC> { [ Alt_R ] };
+  replace key <SYRQ> { [ Alt_R ] };
+  replace key <RCTL> { [ Super_R ] };
+};
