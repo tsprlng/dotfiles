@@ -1,0 +1,38 @@
+general {
+	colors = true
+	interval = 5
+	separator = "  "
+}
+
+#order += "ipv6"
+order += "disk /"
+order += "ethernet ppp0"
+order += "wireless wlp3s0"
+order += "load"
+order += "tztime local"
+
+ethernet ppp0 {
+	format_up = "VPN: %ip (%speed)"
+	format_down = "VPN: down"
+	color_bad = "#aaaaaa"
+	color_good = "#ffff00"
+}
+
+wireless wlp3s0 {
+	format_up = "W: (%quality at %essid, %bitrate) %ip"
+	format_down = "W: down"
+	color_bad = "#ff0000"
+	color_good = "#aaaacc"
+}
+
+tztime local {
+	format = "%Y-%m-%d %Z %H:%M:%S"
+}
+
+load {
+	format = "%1min"
+}
+
+disk "/" {
+	format = "%avail"
+}
