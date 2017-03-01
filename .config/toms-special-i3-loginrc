@@ -6,7 +6,7 @@ mkdir -p $HOME/.xkb/keymap
 setxkbmap -print | sed -e '/xkb_symbols/s/"[[:space:]]/+local&/' > $HOME/.xkb/keymap/custom
 xkbcomp -w0 -I$HOME/.xkb/ -R$HOME/.xkb/ keymap/custom $DISPLAY
 
-xsri --tile=$HOME/Pictures/leave-it.png || true
+which xsri >/dev/null && xsri --tile=$HOME/Pictures/leave-it.png || xsetroot -solid darkgreen
 
 synclient \
   TapButton1=0 TapButton2=0 \
