@@ -43,7 +43,7 @@ install htop vim-nox tree
 
 
 # graphical desktop crap
-install i3 xbacklight
+install i3 xbacklight parcellite
 
 # stop nautilus being annoying and taking over the whole screen
 dconf write /org/gnome/desktop/background/show-desktop-icons false || true
