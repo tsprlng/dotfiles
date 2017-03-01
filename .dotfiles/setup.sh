@@ -12,6 +12,14 @@ install() {
 }
 
 
+[[ -f ~/.ssh/id_ed25519 ]] || NEW_SSH_KEY=yes
+if [[ ! -z "$NEW_SSH_KEY" ]]; then
+	ssh-keygen -t ed25519 -a 200
+fi
+if [[ "$FORCE" =~ github || ! -z "$NEW_SSH_KEY" ]]; then
+	curl -H 'Content-Type: application/json' --user tsprlng 'https://api.github.com/user/keys' -d "{\"title\": \"$(<~/.ssh/id_ed25519.pub perl -p -e 's/^.* //')\", \"key\":\"$(cat ~/.ssh/id_ed25519.pub)\"}"
+fi
+
 # git basics
 install zsh git tig
 
