@@ -21,8 +21,10 @@ if [[ "$FORCE" =~ github || ! -z "$NEW_SSH_KEY" ]]; then
 	curl -H 'Content-Type: application/json' --user tsprlng 'https://api.github.com/user/keys' -d "{\"title\": \"$(<~/.ssh/id_ed25519.pub perl -p -e 's/^.* //')\", \"key\":\"$(cat ~/.ssh/id_ed25519.pub)\"}"
 fi
 
-# git basics
+# git+shell basics
 install zsh git tig
+
+grep -q "$(whoami).*zsh" /etc/passwd || chsh -s /usr/bin/zsh
 
 git config --get user.name >/dev/null || git config --global user.name 'Tom Spurling'
 if ! git config --get user.email >/dev/null; then
