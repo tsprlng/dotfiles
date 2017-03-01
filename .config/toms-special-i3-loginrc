@@ -1,3 +1,5 @@
+#!/bin/bash
+
 setxkbmap -option -option caps:backspace -option shift:both_capslock -option numpad:mac
 
 mkdir -p $HOME/.xkb/keymap
@@ -6,4 +8,8 @@ xkbcomp -w0 -I$HOME/.xkb/ -R$HOME/.xkb/ keymap/custom $DISPLAY
 
 xsri --tile=$HOME/Pictures/leave-it.png || true
 
-synclient TapButton1=0 TapButton2=0
+synclient \
+  TapButton1=0 TapButton2=0 \
+  RightButtonArea{Left,Right,Top,Bottom}=0 \
+  VertEdgeScroll=0 \
+  HorizTwoFingerScroll=1
