@@ -18,7 +18,7 @@ bindsym XF86PowerOff exec --no-startup-id ~/bin/lock
 
 exec /bin/bash ~/.config/toms-special-i3-loginrc
 
-exec --no-startup-id /bin/bash -c "sleep 1; i3-msg 'workspace 10; append_layout ~/.config/login-i3-layout'"
+#exec --no-startup-id /bin/bash -c "sleep 1; i3-msg 'workspace 10; append_layout ~/.config/login-i3-layout'"
 
 exec sleep 2; exec parcellite
 #exec sleep 2; exec systemd-inhibit --what=handle-power-key:handle-suspend-key:handle-hibernate-key:handle-lid-switch --why 'h8 sleeping' sleep 1000d
