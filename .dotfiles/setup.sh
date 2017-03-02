@@ -51,3 +51,11 @@ install i3 xbacklight parcellite
 # stop nautilus being annoying and taking over the whole screen
 dconf write /org/gnome/desktop/background/show-desktop-icons false || true
 dconf write /org/gnome/desktop/background/draw-background false || true
+
+# gotta have my font
+if [[ ! -f .fonts/FantasqueSansMono-Regular.ttf ]]; then
+	mkdir -p .fonts
+	curl -L https://github.com/belluzj/fantasque-sans/releases/download/v1.7.1/FantasqueSansMono.tar.gz -o /tmp/fantasque.tar.gz --fail
+	tar -xvf /tmp/fantasque.tar.gz -C .fonts --wildcards \*.ttf
+	rm /tmp/fantasque.tar.gz
+fi
