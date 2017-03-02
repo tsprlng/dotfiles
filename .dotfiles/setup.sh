@@ -26,6 +26,7 @@ install zsh git tig
 
 grep -q "$(whoami).*zsh" /etc/passwd || chsh -s /usr/bin/zsh
 
+git config --global push.default simple
 git config --get user.name >/dev/null || git config --global user.name 'Tom Spurling'
 if ! git config --get user.email >/dev/null; then
 	read -e -p 'Default email for Git?: ' -i 'tom@' GIT_EMAIL
@@ -35,7 +36,7 @@ fi
 
 # clone dotfiles repo
 if [[ "$FORCE" =~ clone || ! -d .dotfiles.git ]]; then
-	git clone https://github.com/tsprlng/dotfiles.git --bare --branch "$DF_BRANCH" .dotfiles.git
+	git clone git@github.com:tsprlng/dotfiles.git --bare --branch "$DF_BRANCH" .dotfiles.git
 	GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git reset
 	echo '**' > ~/.dotfiles.git/info/exclude
 fi
