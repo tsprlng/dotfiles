@@ -60,3 +60,8 @@ if [[ ! -f .fonts/FantasqueSansMono-Regular.ttf ]]; then
 	tar -xvf /tmp/fantasque.tar.gz -C .fonts --wildcards \*.ttf
 	rm /tmp/fantasque.tar.gz
 fi
+
+# make the mouse work
+# sudo hciconfig hci0 sspmode 1
+# sudo hciconfig hci0 down
+# sudo hciconfig hci0 up
