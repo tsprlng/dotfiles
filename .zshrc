@@ -41,3 +41,6 @@ dotfiles() {
 }
 
 alias sshadd='ssh-add ~/.ssh/id_ed25519'
+
+alias pbcopy='xclip -selection clipboard'
+alias pbpaste='xclip -selection clipboard -o'
