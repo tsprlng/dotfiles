@@ -16,6 +16,8 @@ hide_edge_borders both
 bindsym $mod+Shift+Pause exec --no-startup-id ~/bin/lock
 bindsym XF86PowerOff exec --no-startup-id ~/bin/lock
 
+bindsym XF86LaunchA exec toggle-trackpad
+
 exec /bin/bash ~/.config/toms-special-i3-loginrc
 
 #exec --no-startup-id /bin/bash -c "sleep 1; i3-msg 'workspace 10; append_layout ~/.config/login-i3-layout'"

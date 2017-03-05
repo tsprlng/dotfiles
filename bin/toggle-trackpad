@@ -1,0 +1,5 @@
+#!/bin/bash
+
+synclient | grep -q 'ClickFinger1.*0' \
+  && synclient TouchpadOff=0 ClickFinger1=1 ClickFinger2=3 \
+  || synclient TouchpadOff=1 ClickFinger1=0 ClickFinger2=0
