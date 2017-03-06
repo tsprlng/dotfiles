@@ -1,0 +1,3 @@
+#!/bin/sh
+stuff='firefox intellij subl gedit zzz poweroff shutter i3-sensible-terminal nm-applet'
+(echo "$stuff"|tr ' ' '\n'; dmenu_path) | dmenu "$@" | ${SHELL:-"/bin/bash"} &
