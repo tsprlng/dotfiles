@@ -38,7 +38,7 @@ fi
 if [[ "$FORCE" =~ clone || ! -d .dotfiles.git ]]; then
 	git clone git@github.com:tsprlng/dotfiles.git --bare --branch "$DF_BRANCH" .dotfiles.git
 	GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git reset
-	echo '**' > ~/.dotfiles.git/info/exclude
+	echo -e '/*\n!bin' > ~/.dotfiles.git/info/exclude
 fi
 
 
