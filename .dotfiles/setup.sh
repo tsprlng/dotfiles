@@ -43,7 +43,10 @@ fi
 
 
 # necessary utils for life
-install htop vim-nox tree
+install htop vim-nox tree moreutils
+
+# less necessary but nice to have
+install jq aptitude
 
 
 # graphical desktop crap
