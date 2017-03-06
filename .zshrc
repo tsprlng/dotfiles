@@ -37,7 +37,11 @@ zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
 zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 dotfiles() {
-	GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git "$@"
+	if [[ "$1" == 'tig' ]]; then
+		(cd ~/.dotfiles.git/; "$@")
+	else
+		GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git "$@"
+	fi
 }
 
 alias pbcopy='xclip -selection clipboard'
