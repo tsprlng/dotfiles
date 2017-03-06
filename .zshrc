@@ -40,7 +40,5 @@ dotfiles() {
 	GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git "$@"
 }
 
-alias sshadd='ssh-add ~/.ssh/id_ed25519'
-
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
