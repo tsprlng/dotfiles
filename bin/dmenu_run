@@ -1,3 +1,4 @@
 #!/bin/sh
 stuff='firefox intellij subl gedit zzz poweroff shutter i3-sensible-terminal nm-applet'
-(echo "$stuff"|tr ' ' '\n'; dmenu_path) | dmenu "$@" | ${SHELL:-"/bin/bash"} &
+rename="i3-msg 'rename workspace to \"$(i3-msg -t get_workspaces | jq -r '.[] | select(.focused) | .name')\"'"
+(echo "$stuff"|tr ' ' '\n'; echo "$rename"; dmenu_path) | dmenu "$@" | ${SHELL:-"/bin/bash"} &
