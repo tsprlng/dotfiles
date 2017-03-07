@@ -14,7 +14,7 @@ while (<STATUS>) {
 
 	my $v = `volume` || '??'; chomp $v;
 	my $e = '🔊';  # 🔇🔈🔉
-	my $e = $v gt 'M' ? '🔇' : $v > 50 ? '🔊' : '🔉';
+	my $e = ($v gt 'M' || $v == 0) ? '🔇' : $v > 50 ? '🔊' : '🔉';
 	s/(\{"name":"tz)/{"name":"volume","full_text":"$e $v"},\1/;
 	
 	print $first ? $_ : ",$_";
