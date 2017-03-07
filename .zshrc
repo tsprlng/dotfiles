@@ -46,3 +46,4 @@ dotfiles() {
 
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
+alias less='less -R'  # color control chars allowed through
