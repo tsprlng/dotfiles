@@ -1,0 +1,3 @@
+#!/bin/bash
+exec >/dev/null 2>&1
+i3-msg '[class=Onboard] kill'

@@ -1,0 +1,3 @@
+#!/bin/bash
+exec >/dev/null 2>&1
+i3-msg 'mark _kb_ret_; focus output eDP1; focus parent; focus parent; focus parent; focus parent; focus parent; focus parent; split vertical; append_layout /home/tds/bin/_i3_onboard.layout; exec onboard; [con_mark="_kb_ret_"] focus; unmark _kb_ret_'

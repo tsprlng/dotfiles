@@ -1,0 +1,57 @@
+#!/bin/bash
+
+exec >> /home/tds/volnotwtf 2>&1
+
+if [[ ! $(pgrep -u tds volume_notifier -c) == 1 ]]; then
+  echo WARNING: ONNNNLYYYY OOONNNNNEEEE
+fi
+
+while ! pgrep -u tds pulseaudio; do
+  echo waiting...
+  sleep 1
+done
+
+sleep 1
+
+exec -a volume_notifier python <<EOF
+import dbus
+import os
+from dbus.mainloop.glib import DBusGMainLoop
+import gobject
+import subprocess
+def pulse_bus_address():
+    #if 'PULSE_DBUS_SERVER' in os.environ:
+    #    address = os.environ['PULSE_DBUS_SERVER']
+    #else:
+    #    bus = dbus.SessionBus()
+    #    server_lookup = bus.get_object("org.PulseAudio1", "/org/pulseaudio/server_lookup1")
+    #    address = server_lookup.Get("org.PulseAudio.ServerLookup1", "Address", dbus_interface="org.freedesktop.DBus.Properties")
+    #    print(address)
+
+    return 'unix:path=/run/user/1000/pulse/dbus-socket'
+    return address
+
+def sig_handler(state):
+    if 'sink' in state:
+        subprocess.check_output(['/home/tds/bin/volume','notify'])
+    #print("State changed to %s" % state)
+    #if state == 0:
+    #    print("Pulseaudio running.")
+    #elif state == 1:
+    #    print("Pulseaudio idle.")
+    #elif state == 2:
+    #    print("Pulseaudio suspended")
+
+# setup the glib mainloop
+
+DBusGMainLoop(set_as_default=True)
+
+loop = gobject.MainLoop()
+
+pulse_bus = dbus.connection.Connection(pulse_bus_address())
+pulse_core = pulse_bus.get_object(object_path='/org/pulseaudio/core1')
+pulse_core.ListenForSignal('org.PulseAudio.Core1.Device.ActivePortUpdated', dbus.Array(signature='o'), dbus_interface='org.PulseAudio.Core1')
+
+pulse_bus.add_signal_receiver(sig_handler, 'ActivePortUpdated')
+loop.run()
+EOF

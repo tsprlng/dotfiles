@@ -1,0 +1,6 @@
+#!/bin/bash
+if grep -q onboard <(xlsclients); then
+  . /home/tds/bin/i3_stop_onboard
+else
+  . /home/tds/bin/i3_start_onboard
+fi
