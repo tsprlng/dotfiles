@@ -46,7 +46,7 @@ fi
 install htop vim-nox tree moreutils
 
 # less necessary but nice to have
-install jq aptitude
+install jq aptitude inotify-tools entr
 
 
 # graphical desktop crap

@@ -17,7 +17,7 @@ order += "tztime local"
 ethernet ppp0 {
 	color_bad = "#666666"
 	color_good = "#ffff00"
-	format_up = "VPN: %ip (%speed)"
+	format_up = "VPN: %ip"
 	format_down = "VPN: down"
 }
 

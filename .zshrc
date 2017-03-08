@@ -1,10 +1,42 @@
 # Set up the prompt
 
-autoload -Uz promptinit
-promptinit
-prompt adam1
+autoload -Uz promptinit colors
+promptinit; colors
+setopt prompt_subst
 
-setopt histignorealldups sharehistory
+zsh_theme_pwd_string() {
+	pwd
+}
+zsh_theme_ssh_prompt() {
+	[ $SSH_CONNECTION ] && echo "%{$bg[yellow]%}%{$fg_bold[black]%}%M%{$reset_color%}:"
+}
+zsh_theme_rvm() {}  # TODO copy oh-my-zsh
+git_prompt_info() {
+	ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
+	ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
+	echo -n " %{$fg[red]%}${ref#refs/heads/}"
+	stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . || echo X)"  # TODO pipe
+	if [[ "$stuff" == X ]]; then
+		echo -n X; return
+	fi
+	if [[ -z "$stuff" ]]; then; return; fi
+	echo -n ' '
+	(echo "$stuff" | grep -vq '^??') && echo -n "%{$fg[yellow]%}Δ"
+	(echo "$stuff" | grep -q '^??') && echo -n "%{$fg[yellow]%}?"
+}
+
+PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
+)
+$(zsh_theme_ssh_prompt)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd_string)%{$fg_bold[blue]%}$(git_prompt_info)$(zsh_theme_rvm)
+%{%(!.$fg_bold[red].$fg_bold[yellow])%}%D{%K.%M:%S} >: %{$reset_color%}'
+
+accept-line() {
+	zle reset-prompt
+	zle .$WIDGET
+}
+zle -N accept-line
+
+setopt histignorealldups sharehistory autocd
 
 # Use emacs keybindings even if our EDITOR is set to vi
 bindkey -e
@@ -47,3 +79,8 @@ dotfiles() {
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
 alias less='less -R'  # color control chars allowed through
+alias grep='grep --color=auto'
+
+alias g='git'
+alias gs='git status -s'
+alias gss='git status -s'
