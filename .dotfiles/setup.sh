@@ -27,6 +27,7 @@ install zsh git tig
 grep -q "$(whoami).*zsh" /etc/passwd || chsh -s /usr/bin/zsh
 
 git config --global push.default simple
+git config --global core.excludesFile ~/.cvsignore
 git config --get user.name >/dev/null || git config --global user.name 'Tom Spurling'
 if ! git config --get user.email >/dev/null; then
 	read -e -p 'Default email for Git?: ' -i 'tom@' GIT_EMAIL
