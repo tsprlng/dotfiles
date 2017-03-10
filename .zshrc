@@ -30,6 +30,13 @@ PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
 $(zsh_theme_ssh_prompt)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd_string)%{$fg_bold[blue]%}$(git_prompt_info)$(zsh_theme_rvm)
 %{%(!.$fg_bold[red].$fg_bold[yellow])%}%D{%K.%M:%S} >: %{$reset_color%}'
 
+alias tiga="tig --all"
+alias tigc="git compare"
+alias gppf="git push --force-with-lease"
+alias gpp="git push"
+alias gp="git pull"
+alias gpr="git pull -r"
+alias gka="gitk --all&"
 accept-line() {
 	zle reset-prompt
 	zle .$WIDGET
