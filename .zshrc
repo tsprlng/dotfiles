@@ -22,6 +22,10 @@ zsh_theme_rvm_venv() {
 		echo "%{$fg[grey]%} (${short_venv} $($VIRTUAL_ENV/bin/python --version 2>&1 | grep -o '[0-9\.]*'))"
 	fi
 }
+zsh_theme_ssh_agent() {
+	ssh-add -l >/dev/null 2>&1; local state=$?
+	((( $state == 1 )) && echo -n " %{$fg[red]%}🔑") || ((( $state == 0 )) && echo -n " %{$fg[green]%}🔑")
+}
 git_prompt_info() {
 	ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
 	ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
@@ -39,7 +43,7 @@ git_prompt_info() {
 PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
 )
 $(zsh_theme_ssh_prompt)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd_string)%{$fg_bold[blue]%}$(git_prompt_info)$(zsh_theme_rvm_venv)
-%{%(!.$fg_bold[red].$fg_bold[yellow])%}%D{%K.%M:%S} >: %{$reset_color%}'
+%{%(!.$fg_bold[red].$fg_bold[yellow])%}%D{%K.%M:%S}%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}>: %{$reset_color%}'
 
 accept-line() {
 	zle reset-prompt
