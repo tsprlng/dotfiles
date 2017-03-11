@@ -95,6 +95,7 @@ alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
 alias less='less -R'  # color control chars allowed through
 alias grep='grep --color=auto'
+alias ssh-add='ssh-add -c'
 
 alias g='git'
 alias gs='git status -s'

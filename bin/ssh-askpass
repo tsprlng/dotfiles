@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/bin/zenity --question --text="$*"
