@@ -1,8 +1,9 @@
 # Set up the prompt
 
-autoload -Uz promptinit colors
-promptinit; colors
+autoload -Uz promptinit colors; promptinit; colors
 setopt prompt_subst
+
+export VIRTUAL_ENV_DISABLE_PROMPT=please
 
 zsh_theme_pwd_string() {
 	pwd
@@ -10,7 +11,17 @@ zsh_theme_pwd_string() {
 zsh_theme_ssh_prompt() {
 	[ $SSH_CONNECTION ] && echo "%{$bg[yellow]%}%{$fg_bold[black]%}%M%{$reset_color%}:"
 }
-zsh_theme_rvm() {}  # TODO copy oh-my-zsh
+zsh_theme_rvm_venv() {
+	if [ -f $HOME/.rvm/bin/rvm-prompt ]; then
+		local rvm_prompt=$($HOME/.rvm/bin/rvm-prompt ${ZSH_THEME_RVM_PROMPT_OPTIONS} 2>/dev/null)
+		[[ "${rvm_prompt}x" == "x" ]] || echo "%{$fg[grey]%} (${rvm_prompt})"
+	fi
+	if [[ "${VIRTUAL_ENV}x" == "x" ]]; then : ; else
+		local comps=(${(@s:/:)VIRTUAL_ENV})
+		local short_venv="${comps[-2]}/${comps[-1]}"
+		echo "%{$fg[grey]%} (${short_venv} $($VIRTUAL_ENV/bin/python --version 2>&1 | grep -o '[0-9\.]*'))"
+	fi
+}
 git_prompt_info() {
 	ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
 	ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
@@ -27,7 +38,7 @@ git_prompt_info() {
 
 PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
 )
-$(zsh_theme_ssh_prompt)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd_string)%{$fg_bold[blue]%}$(git_prompt_info)$(zsh_theme_rvm)
+$(zsh_theme_ssh_prompt)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd_string)%{$fg_bold[blue]%}$(git_prompt_info)$(zsh_theme_rvm_venv)
 %{%(!.$fg_bold[red].$fg_bold[yellow])%}%D{%K.%M:%S} >: %{$reset_color%}'
 
 accept-line() {
