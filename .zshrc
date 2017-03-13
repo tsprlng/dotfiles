@@ -23,7 +23,7 @@ zsh_theme_rvm_venv() {
 	fi
 }
 zsh_theme_ssh_agent() {
-	ssh-add -l >/dev/null 2>&1; local state=$?
+	/usr/bin/ssh-add -l >/dev/null 2>&1; local state=$?
 	((( $state == 1 )) && echo -n " %{$fg[red]%}🔑") || ((( $state == 0 )) && echo -n " %{$fg[green]%}🔑")
 }
 git_prompt_info() {
@@ -95,8 +95,17 @@ alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
 alias less='less -R'  # color control chars allowed through
 alias grep='grep --color=auto'
-alias ssh-add='ssh-add -c'
+alias ssh-add='ssh-add -c ~/.ssh/id_ed25519 ~/.ssh/moo_id_rsa'
 
 alias g='git'
 alias gs='git status -s'
 alias gss='git status -s'
+alias gd='git diff'
+alias gdc='git diff --cached'
+alias gpr='git pull --rebase'
+alias gpp='git push'
+alias gppf='git push --force-with-lease'
+alias tiga='tig --all'
+
+export VISUAL=vi
+export EDITOR=vi
