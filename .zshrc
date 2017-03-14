@@ -111,6 +111,7 @@ alias pbpaste='xclip -selection clipboard -o'
 alias less='less -R'  # color control chars allowed through
 alias grep='grep --color=auto'
 alias ssh-add='ssh-add -c ~/.ssh/id_ed25519 ~/.ssh/id_rsa'
+alias mux='pgrep -lfa "ssh.*\[mux\]" -u "$USER"'
 
 alias g='git'
 alias gs='git status -s'
