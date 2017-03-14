@@ -98,6 +98,14 @@ dotfiles() {
 	fi
 }
 
+ssh_bootstrap() {
+	ssh -t $1 -- mkdir -p .dotfiles
+	ssh -t $1 -- curl -L https://github.com/tsprlng/dotfiles/raw/homedir-server/.dotfiles/setup.sh -o .dotfiles/setup.sh
+	ssh -t $1 -- chmod +x .dotfiles/setup.sh
+	ssh -t $1 -- .dotfiles/setup.sh homedir-server
+	ssh $1 -- grep -q '"dotfiles()\s*{"' .zshrc || (grep -r 'dotfiles()\s*{' -A 6 .zshrc | ssh $1 -- tee -a .zshrc)
+}
+
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
 alias less='less -R'  # color control chars allowed through
