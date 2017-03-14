@@ -8,7 +8,7 @@ if [[ -z "$DF_BRANCH" ]]; then
 fi
 
 install() {
-	dpkg -l "$@"
+	dpkg --get-selections "$@" | grep -v 'install$' || true
 }
 
 
