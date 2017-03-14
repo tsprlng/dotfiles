@@ -1,8 +1,0 @@
-partial modifier_keys
-xkb_symbols "local" {
-  replace key <MENU> { [ Alt_R, Meta_R ] };
-  replace key <RCTL> { [ Super_R ] };
-  replace key <LWIN> { [ Control_L ] };
-  replace key <RWIN> { [ Control_R ] };
-  replace key <LCTL> { [ Super_L ] };
-};

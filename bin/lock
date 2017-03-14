@@ -1,4 +1,0 @@
-#!/bin/bash
-
-#gnome-screensaver-command -l; sleep 1; xset dpms force off
-sleep 1; i3lock -c 000000 -d -t -i '/home/toms/Pictures/give it a chance.png'

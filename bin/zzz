@@ -1,4 +1,0 @@
-#!/bin/bash -e
-lock
-sleep 1
-systemctl suspend

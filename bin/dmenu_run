@@ -1,2 +1,0 @@
-#!/bin/sh
-(echo chromium-browser; echo firefox; echo mysql-workbench; echo intellij; dmenu_path) | dmenu -l 18 -i -sb \#aa44aa "$@" | ${SHELL:-"/bin/sh"} &
