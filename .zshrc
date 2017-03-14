@@ -30,6 +30,7 @@ git_prompt_info() {
 	ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
 	ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
 	echo -n " %{$fg[red]%}${ref#refs/heads/}"
+	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then :; else return; fi
 	stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . || echo X)"  # TODO pipe
 	if [[ "$stuff" == X ]]; then
 		echo -n " %{$fg[yellow]%}X"; return
@@ -53,8 +54,11 @@ alias gp="git pull"
 alias gpr="git pull -r"
 alias gka="gitk --all&"
 accept-line() {
+	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then local restore=yes; fi
+	ZSH_SKIP_GIT_STATUS=yes
 	zle reset-prompt
 	zle .$WIDGET
+	if [[ -z "$restore" ]]; then :; else unset ZSH_SKIP_GIT_STATUS; fi
 }
 zle -N accept-line
 
