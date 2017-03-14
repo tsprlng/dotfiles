@@ -32,7 +32,7 @@ git_prompt_info() {
 	echo -n " %{$fg[red]%}${ref#refs/heads/}"
 	stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . || echo X)"  # TODO pipe
 	if [[ "$stuff" == X ]]; then
-		echo -n X; return
+		echo -n " %{$fg[yellow]%}X"; return
 	fi
 	if [[ -z "$stuff" ]]; then; return; fi
 	echo -n ' '
