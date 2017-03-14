@@ -28,6 +28,13 @@ if ! git config --get user.email >/dev/null; then
 	git config --global user.email "$GIT_EMAIL"
 fi
 
+# clone dotfiles repo
+if [[ "$FORCE" =~ clone || ! -d .dotfiles.git ]]; then
+       git clone https://github.com/tsprlng/dotfiles.git --bare --branch "$DF_BRANCH" .dotfiles.git
+       GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git reset
+       echo -e '/*\n!bin' > ~/.dotfiles.git/info/exclude
+fi
+
 # necessary utils for life
 install htop vim-nox tree moreutils
 
