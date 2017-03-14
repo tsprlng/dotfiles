@@ -8,7 +8,7 @@ if [[ -z "$DF_BRANCH" ]]; then
 fi
 
 install() {
-	sudo apt -qqy install "$@" 2>/dev/null | perl -p -e 's/^/  apt: /'
+	dpkg -l "$@"
 }
 
 
