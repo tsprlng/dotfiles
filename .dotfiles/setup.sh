@@ -12,6 +12,9 @@ install() {
 }
 
 
+mkdir -p .ssh/sockets
+chmod 700 .ssh/sockets
+
 [[ -f ~/.ssh/id_ed25519 ]] || NEW_SSH_KEY=yes
 if [[ ! -z "$NEW_SSH_KEY" ]]; then
 	ssh-keygen -t ed25519 -a 200

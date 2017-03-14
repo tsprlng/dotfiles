@@ -30,7 +30,7 @@ exec sleep 2; exec systemd-inhibit --what=handle-power-key:handle-suspend-key:ha
 #exec /bin/bash -c 'sleep 2; exec firefox'
 #exec /bin/bash -c 'sleep 2; exec slack'
 
-# note i commented out focus mode_toggle to do this
+# note commented out focus mode_toggle to do this
 bindsym $mod+space exec dmenu_run
 
 bindsym Print exec shutter
