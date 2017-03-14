@@ -1,1 +1,1 @@
-export SSH_ASKPASS=/home/tds/bin/ssh-askpass
+export SSH_ASKPASS=~/bin/ssh-askpass

@@ -1,0 +1,7 @@
+#!/usr/bin/ruby
+
+unsurprising = "## master...origin/master"
+check = "git status --porcelain -b"
+show = "git status -sb"
+
+system show unless `#{check}`.strip == unsurprising

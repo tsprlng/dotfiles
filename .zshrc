@@ -32,7 +32,7 @@ git_prompt_info() {
 	echo -n " %{$fg[red]%}${ref#refs/heads/}"
 	stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . || echo X)"  # TODO pipe
 	if [[ "$stuff" == X ]]; then
-		echo -n X; return
+		echo -n " %{$fg[yellow]%}X"; return
 	fi
 	if [[ -z "$stuff" ]]; then; return; fi
 	echo -n ' '
@@ -45,6 +45,13 @@ PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
 $(zsh_theme_ssh_prompt)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd_string)%{$fg_bold[blue]%}$(git_prompt_info)$(zsh_theme_rvm_venv)
 %{%(!.$fg_bold[red].$fg_bold[yellow])%}%D{%K.%M:%S}%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}>: %{$reset_color%}'
 
+alias tiga="tig --all"
+alias tigc="git compare"
+alias gppf="git push --force-with-lease"
+alias gpp="git push"
+alias gp="git pull"
+alias gpr="git pull -r"
+alias gka="gitk --all&"
 accept-line() {
 	zle reset-prompt
 	zle .$WIDGET
@@ -91,11 +98,20 @@ dotfiles() {
 	fi
 }
 
+ssh_bootstrap() {
+	ssh -t $1 -- mkdir -p .dotfiles
+	ssh -t $1 -- curl -L https://github.com/tsprlng/dotfiles/raw/homedir-server/.dotfiles/setup.sh -o .dotfiles/setup.sh
+	ssh -t $1 -- chmod +x .dotfiles/setup.sh
+	ssh -t $1 -- .dotfiles/setup.sh homedir-server
+	ssh $1 -- grep -q '"dotfiles()\s*{"' .zshrc || (grep -r 'dotfiles()\s*{' -A 6 .zshrc | ssh $1 -- tee -a .zshrc)
+}
+
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
 alias less='less -R'  # color control chars allowed through
 alias grep='grep --color=auto'
 alias ssh-add='ssh-add -c ~/.ssh/id_ed25519 ~/.ssh/moo_id_rsa'
+alias mux='pgrep -lfa "ssh.*\[mux\]" -u "$USER"'
 
 alias g='git'
 alias gs='git status -s'
