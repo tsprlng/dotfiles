@@ -127,3 +127,5 @@ alias gka='gitk --all&'
 
 export VISUAL=vi
 export EDITOR=vi
+
+dotfiles status -s
