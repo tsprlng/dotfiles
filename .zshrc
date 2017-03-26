@@ -31,7 +31,7 @@ git_prompt_info() {
 	ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
 	echo -n " %{$fg[red]%}${ref#refs/heads/}"
 	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then :; else return; fi
-	stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . || echo X)"  # TODO pipe
+	stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . 2>/dev/null || echo X)"  # TODO pipe
 	if [[ "$stuff" == X ]]; then
 		echo -n " %{$fg[yellow]%}X"; return
 	fi
