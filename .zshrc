@@ -110,6 +110,7 @@ alias less='less -R'  # color control chars allowed through
 alias grep='grep --color=auto'
 alias ssh-add='ssh-add -c ~/.ssh/id_ed25519'
 alias mux='pgrep -lfa "ssh.*\[mux\]" -u "$USER"'
+alias gtypist='gtypist -wSbq'
 
 alias g='git'
 alias gs='git status -s'
