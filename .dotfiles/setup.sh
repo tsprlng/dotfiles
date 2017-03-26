@@ -22,6 +22,8 @@ grep -q "$(whoami).*zsh" /etc/passwd || sudo chsh -s /usr/bin/zsh "$USER"
 
 git config --global push.default simple
 git config --global core.excludesFile ~/.cvsignore
+git config --global rerere.enabled true
+git config --global rebase.autoSquash true
 git config --get user.name >/dev/null || git config --global user.name 'Tom Spurling'
 if ! git config --get user.email >/dev/null; then
 	read -e -p 'Default email for Git?: ' -i 'tom@' GIT_EMAIL
