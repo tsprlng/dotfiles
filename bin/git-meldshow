@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [[ -z "$2" ]]; then
+	# being invoked with one argument: a commit ref for which to show a visual diff
+
+	commit="$1"
+	export MELDSHOW_title="$(git log -n 1 --oneline $commit)"
+
+	git difftool --dir-diff "$commit"^ "$commit" --extcmd ~/bin/git-meldshow &
+		# git does the dirty work of setting up temp dirs to compare, then calls us back...
+
+else
+	# being invoked _as a difftool_ by git, by request of the one-arg version of ourself!
+	# pass git's temp dir arguments through to meld, plus the window-title parameter we generated
+
+	meld --label "$MELDSHOW_title" "$@"
+
+fi

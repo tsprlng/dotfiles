@@ -1,0 +1,1 @@
+bind main D @git meldshow %(commit)  # launch an external whole-directory diff of a commit's changes
