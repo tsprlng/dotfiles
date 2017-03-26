@@ -17,8 +17,8 @@ zsh_theme_rvm_venv() {
 		[[ "${rvm_prompt}x" == "x" ]] || echo "%{$fg[grey]%} (${rvm_prompt})"
 	fi
 	if [[ "${VIRTUAL_ENV}x" == "x" ]]; then : ; else
-		local comps=(${(@s:/:)VIRTUAL_ENV})
-		local short_venv="${comps[-2]}/${comps[-1]}"
+		local components=(${(@s:/:)VIRTUAL_ENV})
+		local short_venv="${components[-2]}/${components[-1]}"
 		echo "%{$fg[grey]%} (${short_venv} $($VIRTUAL_ENV/bin/python --version 2>&1 | grep -o '[0-9\.]*'))"
 	fi
 }
@@ -46,13 +46,6 @@ PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
 $(zsh_theme_ssh_prompt)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd_string)%{$fg_bold[blue]%}$(git_prompt_info)$(zsh_theme_rvm_venv)
 %{%(!.$fg_bold[red].$fg_bold[yellow])%}%D{%K.%M:%S}%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}>: %{$reset_color%}'
 
-alias tiga="tig --all"
-alias tigc="git compare"
-alias gppf="git push --force-with-lease"
-alias gpp="git push"
-alias gp="git pull"
-alias gpr="git pull -r"
-alias gka="gitk --all&"
 accept-line() {
 	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then local restore=yes; fi
 	ZSH_SKIP_GIT_STATUS=yes
@@ -64,8 +57,8 @@ zle -N accept-line
 
 setopt histignorealldups sharehistory autocd
 
-# Use emacs keybindings even if our EDITOR is set to vi
-bindkey -e
+bindkey -e  # Use emacs keybindings even if our EDITOR is set to vi
+WORDCHARS=''  # I like being able to ^W path components one by one. By default this was: *?_-.[]~=/&;!#$%^(){}<>
 
 # Keep 1000 lines of history within the shell and save it to ~/.zsh_history:
 HISTSIZE=1000
@@ -102,21 +95,34 @@ dotfiles() {
 	fi
 }
 
+ssh_bootstrap() {
+	ssh -t $1 -- mkdir -p .dotfiles
+	ssh -t $1 -- curl -L https://github.com/tsprlng/dotfiles/raw/homedir-server/.dotfiles/setup.sh -o .dotfiles/setup.sh
+	ssh -t $1 -- chmod +x .dotfiles/setup.sh
+	ssh -t $1 -- .dotfiles/setup.sh homedir-server
+	ssh $1 -- grep -q '"dotfiles()\s*{"' .zshrc || (grep -r 'dotfiles()\s*{' -A 6 .zshrc | ssh $1 -- tee -a .zshrc)
+}
+
+alias l='ls -al'
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
 alias less='less -R'  # color control chars allowed through
 alias grep='grep --color=auto'
-alias ssh-add='ssh-add -c ~/.ssh/id_ed25519 ~/.ssh/id_rsa'
+alias ssh-add='ssh-add -c ~/.ssh/id_ed25519'
+alias mux='pgrep -lfa "ssh.*\[mux\]" -u "$USER"'
 
 alias g='git'
 alias gs='git status -s'
 alias gss='git status -s'
 alias gd='git diff'
 alias gdc='git diff --cached'
+alias gp='git pull'
 alias gpr='git pull --rebase'
 alias gpp='git push'
 alias gppf='git push --force-with-lease'
 alias tiga='tig --all'
+alias tigc='git compare'
+alias gka='gitk --all&'
 
 export VISUAL=vi
 export EDITOR=vi
