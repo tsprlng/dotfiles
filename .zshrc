@@ -19,7 +19,7 @@ zsh_theme_rvm_venv() {
 		local rvm_prompt=$($HOME/.rvm/bin/rvm-prompt ${ZSH_THEME_RVM_PROMPT_OPTIONS} 2>/dev/null)
 		[[ "${rvm_prompt}x" == "x" ]] || echo "%{$fg[grey]%} (${rvm_prompt})"
 	fi
-	if [[ "${VIRTUAL_ENV}x" == "x" ]]; then : ; else
+	if [[ -n "$VIRTUAL_ENV" ]]; then
 		local components=(${(@s:/:)VIRTUAL_ENV})
 		local short_venv="${components[-2]}/${components[-1]}"
 		echo "%{$fg[grey]%} (${short_venv} $($VIRTUAL_ENV/bin/python --version 2>&1 | grep -o '[0-9\.]*'))"
@@ -33,7 +33,7 @@ git_prompt_info() {
 	ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
 	ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
 	echo -n " %{$fg[red]%}${ref#refs/heads/}"
-	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then :; else return; fi
+	if [[ -n "$ZSH_SKIP_GIT_STATUS" ]]; then return; fi
 	stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . 2>/dev/null || echo X)"  # TODO pipe
 	if [[ "$stuff" == X ]]; then
 		echo -n " %{$fg[yellow]%}X"; return
@@ -54,7 +54,7 @@ accept-line() {
 	ZSH_SKIP_GIT_STATUS=yes
 	zle reset-prompt
 	zle .$WIDGET
-	if [[ -z "$restore" ]]; then :; else unset ZSH_SKIP_GIT_STATUS; fi
+	if [[ -n "$restore" ]]; then unset ZSH_SKIP_GIT_STATUS; fi
 }
 zle -N accept-line
 
