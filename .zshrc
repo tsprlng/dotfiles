@@ -5,6 +5,9 @@ setopt prompt_subst
 
 export VIRTUAL_ENV_DISABLE_PROMPT=please
 
+zsh_theme_date() {
+	date -u +'%-H.%M:%S'  # this is so that the shell shows UTC timestamps (like a good logger) even on a desktop which has "local time" adjustments
+}
 zsh_theme_pwd_string() {
 	pwd
 }
@@ -44,7 +47,7 @@ git_prompt_info() {
 PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
 )
 $(zsh_theme_ssh_prompt)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd_string)%{$fg_bold[blue]%}$(git_prompt_info)$(zsh_theme_rvm_venv)
-%{%(!.$fg_bold[red].$fg_bold[yellow])%}%D{%K.%M:%S}%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}>: %{$reset_color%}'
+%{%(!.$fg_bold[red].$fg_bold[yellow])%}$(zsh_theme_date)%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}>: %{$reset_color%}'
 
 accept-line() {
 	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then local restore=yes; fi
