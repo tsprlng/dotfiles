@@ -55,7 +55,11 @@ accept-line() {
 }
 zle -N accept-line
 
-setopt histignorealldups sharehistory autocd
+setopt histignorealldups sharehistory
+
+setopt autocd autopushd pushdignoredups
+alias d='dirs -v'
+for i in {1..20}; do; alias $i="cd ~$i"; done
 
 bindkey -e  # Use emacs keybindings even if our EDITOR is set to vi
 WORDCHARS=''  # I like being able to ^W path components one by one. By default this was: *?_-.[]~=/&;!#$%^(){}<>
