@@ -96,7 +96,7 @@ zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
 
 dotfiles() {
 	if [[ "$1" == 'tig' ]]; then
-		(cd ~/.dotfiles.git/; "$@")
+		GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ "$@"
 	else
 		GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git "$@"
 	fi
