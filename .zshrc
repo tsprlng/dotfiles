@@ -17,8 +17,8 @@ zsh_theme_rvm_venv() {
 		[[ "${rvm_prompt}x" == "x" ]] || echo "%{$fg[grey]%} (${rvm_prompt})"
 	fi
 	if [[ "${VIRTUAL_ENV}x" == "x" ]]; then : ; else
-		local comps=(${(@s:/:)VIRTUAL_ENV})
-		local short_venv="${comps[-2]}/${comps[-1]}"
+		local components=(${(@s:/:)VIRTUAL_ENV})
+		local short_venv="${components[-2]}/${components[-1]}"
 		echo "%{$fg[grey]%} (${short_venv} $($VIRTUAL_ENV/bin/python --version 2>&1 | grep -o '[0-9\.]*'))"
 	fi
 }
