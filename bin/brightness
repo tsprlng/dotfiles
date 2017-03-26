@@ -1,0 +1,31 @@
+#!/bin/bash
+
+exec 2>/dev/null
+
+get() {
+  xbacklight
+}
+
+notify() {
+ pkill -KILL -f /usr/bin/i3status;
+ it=$(get)
+ if [[ "$it" =~ M ]]; then
+  volnoti-show -m || true
+ else
+  volnoti-show "$it" || true
+ fi
+}
+
+if [[ "$@" =~ up ]]; then
+  xbacklight +3
+  notify
+elif [[ "$@" =~ down ]]; then
+  xbacklight -3
+  notify
+elif [[ "$@" =~ notify ]]; then
+  notify
+else
+  get
+fi
+
+exit 0

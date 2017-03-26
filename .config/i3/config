@@ -34,8 +34,8 @@ bindsym XF86AudioRaiseVolume exec --no-startup-id ~/bin/volume up
 bindsym XF86AudioLowerVolume exec --no-startup-id ~/bin/volume down
 bindsym XF86AudioMute exec --no-startup-id ~/bin/volume mute
 
-bindsym XF86MonBrightnessUp exec --no-startup-id xbacklight +3%
-bindsym XF86MonBrightnessDown exec --no-startup-id xbacklight -3%
+bindsym XF86MonBrightnessUp exec --no-startup-id ~/bin/brightness up
+bindsym XF86MonBrightnessDown exec --no-startup-id ~/bin/brightness down
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
