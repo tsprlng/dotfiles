@@ -1,3 +1,5 @@
+set encoding=utf-8
+
 " Tabs not spaces by default; show as 3 columns wide.
 set noexpandtab
 set shiftwidth=3
@@ -26,8 +28,6 @@ set scrolloff=5  " Always keep some visible surroundings surrounding the cursor 
 syntax enable
 set bg=dark
 
-set number
-set relativenumber
 highlight LineNr ctermfg=240
 highlight CursorLineNr ctermbg=238 ctermfg=232
 
