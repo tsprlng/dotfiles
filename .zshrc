@@ -57,8 +57,8 @@ zle -N accept-line
 
 setopt histignorealldups sharehistory autocd
 
-# Use emacs keybindings even if our EDITOR is set to vi
-bindkey -e
+bindkey -e  # Use emacs keybindings even if our EDITOR is set to vi
+WORDCHARS=''  # I like being able to ^W path components one by one. By default this was: *?_-.[]~=/&;!#$%^(){}<>
 
 # Keep 1000 lines of history within the shell and save it to ~/.zsh_history:
 HISTSIZE=1000
