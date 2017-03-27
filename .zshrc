@@ -8,16 +8,16 @@ export VIRTUAL_ENV_DISABLE_PROMPT=please
 zsh_theme_date() {
 	date -u +'%-H.%M:%S'  # this is so that the shell shows UTC timestamps (like a good logger) even on a desktop which has "local time" adjustments
 }
-zsh_theme_pwd_string() {
+zsh_theme_pwd() {
 	pwd
 }
-zsh_theme_ssh_prompt() {
+zsh_theme_ssh() {
 	[ $SSH_CONNECTION ] && echo "%{$bg[yellow]%}%{$fg_bold[black]%}%M%{$reset_color%}:"
 }
 zsh_theme_rvm_venv() {
 	if [ -f $HOME/.rvm/bin/rvm-prompt ]; then
 		local rvm_prompt=$($HOME/.rvm/bin/rvm-prompt ${ZSH_THEME_RVM_PROMPT_OPTIONS} 2>/dev/null)
-		[[ "${rvm_prompt}x" == "x" ]] || echo "%{$fg[grey]%} (${rvm_prompt})"
+		[[ -n "$rvm_prompt" ]] && echo "%{$fg[grey]%} (${rvm_prompt})"
 	fi
 	if [[ -n "$VIRTUAL_ENV" ]]; then
 		local components=(${(@s:/:)VIRTUAL_ENV})
@@ -29,24 +29,27 @@ zsh_theme_ssh_agent() {
 	/usr/bin/ssh-add -l >/dev/null 2>&1; local state=$?
 	((( $state == 1 )) && echo -n " %{$fg[red]%}🔑") || ((( $state == 0 )) && echo -n " %{$fg[green]%}🔑")
 }
-git_prompt_info() {
-	ref=$(command git symbolic-ref HEAD 2> /dev/null) || \
-	ref=$(command git rev-parse --short HEAD 2> /dev/null) || return
+zsh_theme_git() {
+	local ref
+	ref=$(command git symbolic-ref HEAD 2> /dev/null) \
+		|| ref=$(command git rev-parse --short HEAD 2> /dev/null) \
+		|| return
 	echo -n " %{$fg[red]%}${ref#refs/heads/}"
-	if [[ -n "$ZSH_SKIP_GIT_STATUS" ]]; then return; fi
-	stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . 2>/dev/null || echo X)"  # TODO pipe
-	if [[ "$stuff" == X ]]; then
-		echo -n " %{$fg[yellow]%}X"; return
+	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then
+		local stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . 2>/dev/null || echo FAIL)"
+		if [[ -n "$stuff" ]]; then
+			echo -n " %{$fg[yellow]%}"
+			if [[ "$stuff" == FAIL ]]; then echo -n "X"; else
+				(echo "$stuff" | grep -vq '^??') && echo -n "Δ"
+				(echo "$stuff" | grep -q '^??') && echo -n "?"
+			fi
+		fi
 	fi
-	if [[ -z "$stuff" ]]; then; return; fi
-	echo -n ' '
-	(echo "$stuff" | grep -vq '^??') && echo -n "%{$fg[yellow]%}Δ"
-	(echo "$stuff" | grep -q '^??') && echo -n "%{$fg[yellow]%}?"
 }
 
 PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
 )
-$(zsh_theme_ssh_prompt)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd_string)%{$fg_bold[blue]%}$(git_prompt_info)$(zsh_theme_rvm_venv)
+$(zsh_theme_ssh)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd)$(zsh_theme_git)$(zsh_theme_rvm_venv)
 %{%(!.$fg_bold[red].$fg_bold[yellow])%}$(zsh_theme_date)%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}>: %{$reset_color%}'
 
 accept-line() {
@@ -58,8 +61,6 @@ accept-line() {
 }
 zle -N accept-line
 
-setopt histignorealldups sharehistory
-
 setopt autocd autopushd pushdignoredups
 alias d='dirs -v'
 for i in {1..20}; do; alias $i="cd ~$i"; done
@@ -67,7 +68,7 @@ for i in {1..20}; do; alias $i="cd ~$i"; done
 bindkey -e  # Use emacs keybindings even if our EDITOR is set to vi
 WORDCHARS=''  # I like being able to ^W path components one by one. By default this was: *?_-.[]~=/&;!#$%^(){}<>
 
-# Keep 1000 lines of history within the shell and save it to ~/.zsh_history:
+setopt histignorealldups sharehistory
 HISTSIZE=1000
 SAVEHIST=1000
 HISTFILE=~/.zsh_history
