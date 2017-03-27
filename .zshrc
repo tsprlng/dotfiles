@@ -69,9 +69,10 @@ for i in {1..20}; do; alias $i="cd ~$i"; done
 bindkey -e  # Use emacs keybindings even if our EDITOR is set to vi
 WORDCHARS=''  # I like being able to ^W path components one by one. By default this was: *?_-.[]~=/&;!#$%^(){}<>
 
-setopt histignorealldups sharehistory
-HISTSIZE=1000
-SAVEHIST=1000
+setopt histverify histreduceblanks histignorespace
+setopt histignorealldups sharehistory extendedhistory appendhistory incappendhistory
+HISTSIZE=10000
+SAVEHIST=10000
 HISTFILE=~/.zsh_history
 
 # Use modern completion system
