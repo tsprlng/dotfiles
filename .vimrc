@@ -31,14 +31,14 @@ set bg=dark
 highlight LineNr ctermfg=240
 highlight CursorLineNr ctermbg=238 ctermfg=232
 
-set listchars=tab:-\ ,trail:·
 set list
-highlight SpecialKey ctermfg=238
+set listchars=tab:\🢒\ ,trail:▸,nbsp:␣,precedes:←,extends:→
+set wrap
+set showbreak=\ ...
+set breakindent
+highlight SpecialKey ctermfg=236
 highlight NonText ctermfg=238
 
-set wrap
-set showbreak=...
-set breakindent
 
 set incsearch
 set hlsearch
