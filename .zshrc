@@ -56,10 +56,11 @@ accept-line() {
 	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then local restore=yes; fi
 	ZSH_SKIP_GIT_STATUS=yes
 	zle reset-prompt
-	zle .$WIDGET
+	if [[ -n "$BUFFER" ]]; then zle .$WIDGET; fi
 	if [[ -n "$restore" ]]; then unset ZSH_SKIP_GIT_STATUS; fi
 }
 zle -N accept-line
+TRAPINT() {}
 
 setopt autocd autopushd pushdignoredups
 alias d='dirs -v'
