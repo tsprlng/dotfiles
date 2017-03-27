@@ -112,6 +112,7 @@ ssh_bootstrap() {
 	ssh $1 -- grep -q '"dotfiles()\s*{"' .zshrc || (grep -r 'dotfiles()\s*{' -A 6 .zshrc | ssh $1 -- tee -a .zshrc)
 }
 
+alias ls='ls --color=auto'
 alias l='ls -al'
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
