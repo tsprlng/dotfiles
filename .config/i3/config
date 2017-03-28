@@ -42,7 +42,8 @@ bindsym XF86MonBrightnessDown exec --no-startup-id ~/bin/brightness down
 font pango:Fantasque Sans Mono Bold 11
 
 #client.focused ff00ff 770077 ffffff ff00ff
-client.focused #ff00ff #aa00aa #ffffff #ff00ff #ff00ff
+#client.focused #ff00ff #aa00aa #ffffff #ff00ff #ff00ff
+client.focused #ff00ff #000000 #ffffff #ff00ff #ff00ff
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
@@ -186,7 +187,7 @@ bindsym $mod+p mode "resize"
 # finds out, if available)
 bar {
 	colors {
-		focused_workspace #ff00ff #aa00aa #ffffff
+		focused_workspace #ff00ff #000000 #ffffff
 		separator #111111
 	}
 	status_command tom-i3status
