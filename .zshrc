@@ -104,6 +104,7 @@ dotfiles() {
 		GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git "$@"
 	fi
 }
+compdef dotfiles=git
 
 ssh_bootstrap() {
 	ssh -t $1 -- mkdir -p .dotfiles
