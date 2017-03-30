@@ -12,5 +12,5 @@ synclient \
   TapButton1=0 TapButton2=0 \
   RightButtonArea{Left,Right,Top,Bottom}=0 \
   VertEdgeScroll=0 \
-  HorizTwoFingerScroll=1 \
-  TouchpadOff=1 ClickFinger1=0 ClickFinger2=0  # as in toggle-trackpad
+  HorizTwoFingerScroll=1 HorizScrollDelta=20 \
+  TouchpadOff=1 ClickFinger1=0 ClickFinger2=0  # turn it off by default; as in ~/bin/toggle-trackpad
