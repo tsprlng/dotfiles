@@ -45,7 +45,7 @@ set hlsearch
 
 
 " Bonus plugins in case I can be arsed with this again
-if exists("*pathogen")  " TODO is this exactly right?
+if filereadable(expand("~/.vim/autoload/pathogen.vim"))
 	call pathogen#infect()
 	noremap <C-p> :NERDTreeFind<CR>
 endif
