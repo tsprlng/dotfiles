@@ -24,6 +24,7 @@ ethernet ppp0 {
 wireless wlp3s0 {
 	color_bad = "#880000"
 	color_good = "#6677cc"
+	color_degraded = "#7766cc"
 	format_up = "W: %quality %bitrate %ip"
 	format_down = "W: down"
 }
