@@ -24,6 +24,11 @@ git config --global push.default simple
 git config --global core.excludesFile ~/.cvsignore
 git config --global rerere.enabled true
 git config --global rebase.autoSquash true
+
+git config --global alias.ignore '!git update-index --assume-unchanged'
+git config --global alias.unignore '!git update-index --no-assume-unchanged'
+git config --global alias.ignored '!git ls-files -v | grep ^[a-z]'
+
 git config --get user.name >/dev/null || git config --global user.name 'Tom Spurling'
 if ! git config --get user.email >/dev/null; then
 	read -e -p 'Default email for Git?: ' -i 'tom@' GIT_EMAIL

@@ -68,6 +68,7 @@ for i in {1..20}; do; alias $i="cd ~$i"; done
 
 bindkey -e  # Use emacs keybindings even if our EDITOR is set to vi
 WORDCHARS=''  # I like being able to ^W path components one by one. By default this was: *?_-.[]~=/&;!#$%^(){}<>
+bindkey "^[[1;5C" forward-word ; bindkey "^[[1;5D" backward-word  # ctrl-left and -right
 
 setopt histverify histreduceblanks histignorespace
 setopt histignorealldups sharehistory extendedhistory appendhistory incappendhistory
@@ -104,6 +105,7 @@ dotfiles() {
 		GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git "$@"
 	fi
 }
+compdef dotfiles=git
 
 ssh_bootstrap() {
 	ssh -t $1 -- mkdir -p .dotfiles
