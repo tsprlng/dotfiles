@@ -131,10 +131,12 @@ alias gd='git diff'
 alias gdc='git diff --cached'
 alias gp='git pull'
 alias gpr='git pull --rebase'
+alias gup='git update'
+alias gmm='git mm'
 alias gpp='git push'
 alias gppf='git push --force-with-lease'
 alias tiga='tig --all'
-alias tigc='git compare'
+alias tigc='git tigc'
 alias gka='gitk --all&'
 
 export VISUAL=vi

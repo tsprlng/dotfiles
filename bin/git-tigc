@@ -1,0 +1,4 @@
+#!/bin/bash -e
+branch=$(git symbolic-ref HEAD --short)
+remote=$(git config --get "branch.${branch}.remote")
+tig {,"${remote}/"}"${branch}"
