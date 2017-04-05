@@ -135,7 +135,7 @@ alias gpr='git pull --rebase'
 alias gpp='git push'
 alias gppf='git push --force-with-lease'
 alias tiga='tig --all'
-alias tigc='git compare'
+alias tigc='git tigc'
 alias gka='gitk --all&'
 
 export VISUAL=vi
