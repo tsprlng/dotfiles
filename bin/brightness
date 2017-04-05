@@ -8,19 +8,13 @@ get() {
 
 notify() {
  pkill -KILL -f /usr/bin/i3status;
- it=$(get)
- if [[ "$it" =~ M ]]; then
-  volnoti-show -m || true
- else
-  volnoti-show "$it" || true
- fi
 }
 
 if [[ "$@" =~ up ]]; then
-  xbacklight +3
+  xbacklight +3 -steps 1 -time 1
   notify
 elif [[ "$@" =~ down ]]; then
-  xbacklight -3
+  xbacklight -3 -steps 1 -time 1
   notify
 elif [[ "$@" =~ notify ]]; then
   notify
