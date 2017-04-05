@@ -34,6 +34,7 @@ git config --global core.excludesFile ~/.cvsignore
 git config --global rerere.enabled true
 git config --global rebase.autoSquash true
 
+git config --global alias.mm '!git merge --no-ff --no-commit'
 git config --global alias.ignore '!git update-index --assume-unchanged'
 git config --global alias.unignore '!git update-index --no-assume-unchanged'
 git config --global alias.ignored '!git ls-files -v | grep ^[a-z]'
