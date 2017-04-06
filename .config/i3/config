@@ -16,14 +16,13 @@ hide_edge_borders both
 bindsym $mod+Shift+Pause exec --no-startup-id ~/bin/lock
 bindsym XF86PowerOff exec --no-startup-id ~/bin/lock
 
-bindsym XF86LaunchA exec toggle-trackpad
 
 exec /bin/bash ~/.config/toms-special-i3-loginrc
 
 #exec --no-startup-id /bin/bash -c "sleep 1; i3-msg 'workspace 0; append_layout ~/.config/login-i3-layout'"
 
-exec sleep 2; exec parcellite
-#exec sleep 2; exec systemd-inhibit --what=handle-power-key:handle-suspend-key:handle-hibernate-key:handle-lid-switch --why 'h8 sleeping' sleep 1000d
+exec --no-startup-id volnoti
+exec --no-startup-id /home/tds/bin/volume_notifier
 
 # note commented out focus mode_toggle to do this
 bindsym $mod+space exec dmenu_run
@@ -36,6 +35,7 @@ bindsym XF86AudioMute exec --no-startup-id ~/bin/volume mute
 
 bindsym XF86MonBrightnessUp exec --no-startup-id ~/bin/brightness up
 bindsym XF86MonBrightnessDown exec --no-startup-id ~/bin/brightness down
+exec xsri --emblem Pictures/jc.png --center-x --center-y --color \#0d0d0d
 
 # Font for window titles. Will also be used by the bar unless a different font
 # is used in the bar {} block below.
@@ -47,7 +47,7 @@ client.focused #ff00ff #000000 #ffffff #ff00ff #ff00ff
 
 # This font is widely installed, provides lots of unicode glyphs, right-to-left
 # text rendering and scalability on retina/hidpi displays (thanks to pango).
-#font pango:DejaVu Sans Mono 8
+font pango:DejaVu Sans Mono 14
 
 # Before i3 v4.8, we used to recommend this one as the default:
 # font -misc-fixed-medium-r-normal--13-120-75-75-C-70-iso10646-1
