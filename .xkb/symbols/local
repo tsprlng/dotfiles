@@ -5,7 +5,5 @@ xkb_symbols "local" {
 	replace key <LALT> { [ Control_L, Control_L ] };
 	replace key <RALT> { [ Control_R, Control_R ] };
 	replace key <MENU> { [ Alt_R, Meta_R ] };
-	replace key <PRSC> { [ Alt_R, Meta_R ] };
-	replace key <SYRQ> { [ Alt_R, Meta_R ] };
 	replace key <RCTL> { [ Super_R ] };
 };
