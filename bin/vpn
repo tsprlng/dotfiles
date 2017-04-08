@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [[ $1 = 'up' || $1 != 'down' && ! -d /proc/sys/net/ipv4/conf/ppp0 ]]; then
+  nmcli --ask c up 'VPN'
+else
+  nmcli --ask c down 'VPN'
+fi
