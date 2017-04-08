@@ -14,7 +14,8 @@ set $mod Mod4
 hide_edge_borders both
 
 bindsym $mod+Shift+Pause exec --no-startup-id ~/bin/lock
-bindsym XF86PowerOff exec --no-startup-id ~/bin/lock
+bindsym $mod+Delete exec /home/tds/bin/i3_toggle_onboard
+bindsym XF86PowerOff exec /home/tds/bin/i3_toggle_onboard
 
 
 exec /bin/bash ~/.config/toms-special-i3-loginrc
