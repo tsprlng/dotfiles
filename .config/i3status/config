@@ -8,8 +8,7 @@ general {
 #order += "ipv6"
 order += "disk /"
 order += "ethernet ppp0"
-order += "wireless wlp3s0"
-order += "battery 0"
+order += "wireless wlp2s0"
 order += "battery 1"
 order += "load"
 order += "tztime local"
@@ -21,7 +20,7 @@ ethernet ppp0 {
 	format_down = "VPN: down"
 }
 
-wireless wlp3s0 {
+wireless wlp2s0 {
 	color_bad = "#880000"
 	color_good = "#6677cc"
 	color_degraded = "#7766cc"
@@ -29,19 +28,8 @@ wireless wlp3s0 {
 	format_down = "W: down"
 }
 
-battery 0 {
-	format = "int %status%percentage %remaining %emptytime"
-	format_down = "X"
-	integer_battery_capacity = true
-	status_chr = "⚡ "
-	status_bat = ""
-	status_full = ""
-	path = "/sys/class/power_supply/BAT%d/uevent"
-	low_threshold = 10
-}
-
 battery 1 {
-	format = "ext %status%percentage %remaining %emptytime"
+	format = "%status%percentage %remaining %emptytime"
 	format_down = "X"
 	integer_battery_capacity = true
 	status_chr = "⚡ "

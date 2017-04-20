@@ -24,6 +24,11 @@ nnoremap <C-y> 3<C-y>
 set scrolloff=5  " Always keep some visible surroundings surrounding the cursor line
 
 
+" Reselect visual block after indent/outdent
+vnoremap < <gv
+vnoremap > >gv
+
+
 " Visual pleasantries
 syntax enable
 set bg=dark
