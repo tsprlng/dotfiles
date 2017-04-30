@@ -17,7 +17,7 @@ bindsym $mod+Shift+Pause exec --no-startup-id ~/bin/lock
 bindsym $mod+Delete exec /home/tds/bin/i3_toggle_onboard
 bindsym XF86PowerOff exec /home/tds/bin/i3_toggle_onboard
 
-exec /bin/bash ~/.config/toms-special-i3-loginrc
+exec_always /bin/bash ~/.config/toms-special-i3-loginrc
 
 #exec --no-startup-id /bin/bash -c "sleep 1; i3-msg 'workspace 0; append_layout ~/.config/login-i3-layout'"
 
