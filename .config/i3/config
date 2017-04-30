@@ -194,6 +194,5 @@ bar {
 	status_command tom-i3status
 	#separator_symbol ——
 	separator_symbol " "
-	tray_output primary
 	#position top
 }
