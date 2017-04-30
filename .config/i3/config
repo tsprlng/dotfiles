@@ -17,11 +17,11 @@ bindsym $mod+Shift+Pause exec --no-startup-id ~/bin/lock
 bindsym $mod+Delete exec /home/tds/bin/i3_toggle_onboard
 bindsym XF86PowerOff exec /home/tds/bin/i3_toggle_onboard
 
-
 exec /bin/bash ~/.config/toms-special-i3-loginrc
 
 #exec --no-startup-id /bin/bash -c "sleep 1; i3-msg 'workspace 0; append_layout ~/.config/login-i3-layout'"
 
+exec sleep 2; exec parcellite
 exec --no-startup-id volnoti
 exec --no-startup-id /home/tds/bin/volume_notifier
 
