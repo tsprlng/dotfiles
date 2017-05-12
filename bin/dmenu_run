@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/zsh
 
 stuff='firefox
 chromium-browser
@@ -15,4 +15,6 @@ nm-applet'
 
 rename="i3-msg 'rename workspace to \"$(i3-msg -t get_workspaces | jq -r '.[] | select(.focused) | .name')\"'"
 
-(echo "$stuff"; echo "$rename"; dmenu_path) | dmenu "$@" | ${SHELL:-"/bin/bash"} &
+todo=$( (echo "$stuff"; echo "$rename"; dmenu_path) | dmenu "$@" )
+
+eval "$todo &!"
