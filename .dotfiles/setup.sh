@@ -62,7 +62,7 @@ install jq aptitude inotify-tools entr
 
 
 # graphical desktop crap
-install i3 xbacklight parcellite xclip
+install i3 xbacklight parcellite xclip redshift
 
 # stop nautilus being annoying and taking over the whole screen
 dconf write /org/gnome/desktop/background/show-desktop-icons false || true

@@ -1,0 +1,7 @@
+#!/usr/bin/zsh
+zmodload zsh/zselect
+
+while :; do
+	redshift -l 51.5:0 -m randr -v -o -t 5500:3500
+	zselect -t 8000 || true  # this is 80s (in 1/100s)
+done
