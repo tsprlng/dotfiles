@@ -53,10 +53,14 @@ $(zsh_theme_ssh)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd)$(zsh_theme
 %{%(!.$fg_bold[red].$fg_bold[yellow])%}$(zsh_theme_date)%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}>: %{$reset_color%}'
 
 accept-line() {
+	if [[ -z "$BUFFER" ]]; then
+		zle reset-prompt
+		return
+	fi
 	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then local restore=yes; fi
 	ZSH_SKIP_GIT_STATUS=yes
 	zle reset-prompt
-	if [[ -n "$BUFFER" ]]; then zle .$WIDGET; fi
+	zle .$WIDGET
 	if [[ -n "$restore" ]]; then unset ZSH_SKIP_GIT_STATUS; fi
 }
 zle -N accept-line
