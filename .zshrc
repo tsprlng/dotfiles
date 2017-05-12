@@ -69,6 +69,7 @@ for i in {1..20}; do; alias $i="cd ~$i"; done
 bindkey -e  # Use emacs keybindings even if our EDITOR is set to vi
 WORDCHARS=''  # I like being able to ^W path components one by one. By default this was: *?_-.[]~=/&;!#$%^(){}<>
 bindkey "^[[1;5C" forward-word ; bindkey "^[[1;5D" backward-word  # ctrl-left and -right
+stty stop undef start undef  # I find ^s "stop" behaviour very annoying
 
 setopt histverify histreduceblanks histignorespace
 setopt histignorealldups sharehistory extendedhistory appendhistory incappendhistory
