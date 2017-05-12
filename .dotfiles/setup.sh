@@ -68,6 +68,10 @@ install i3 xbacklight parcellite xclip redshift
 dconf write /org/gnome/desktop/background/show-desktop-icons false || true
 dconf write /org/gnome/desktop/background/draw-background false || true
 
+# minor gnome-terminal annoyments
+dconf write /org/gnome/terminal/legacy/default-show-menubar false || true
+dconf write /org/gnome/terminal/legacy/keybindings/help disabled || true
+
 # gotta have my font
 if [[ ! -f .fonts/FantasqueSansMono-Regular.ttf ]]; then
 	mkdir -p .fonts
