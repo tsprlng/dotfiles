@@ -119,7 +119,7 @@ ssh_bootstrap() {
 	ssh -t $1 -- curl -L https://github.com/tsprlng/dotfiles/raw/homedir-server/.dotfiles/setup.sh -o .dotfiles/setup.sh
 	ssh -t $1 -- chmod +x .dotfiles/setup.sh
 	ssh -t $1 -- .dotfiles/setup.sh homedir-server
-	ssh $1 -- grep -q '"dotfiles()\s*{"' .zshrc || (grep -r 'dotfiles()\s*{' -A 6 .zshrc | ssh $1 -- tee -a .zshrc)
+	ssh $1 -- grep -q '"dotfiles()\s*{"' .zshrc || (whence -f dotfiles | ssh $1 -- tee -a .zshrc)
 }
 
 alias ls='ls --color=auto'
