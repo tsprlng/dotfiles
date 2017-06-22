@@ -8,6 +8,7 @@ general {
 #order += "ipv6"
 order += "disk /"
 order += "ethernet ppp0"
+order += "ethernet enp0s25"
 order += "wireless wlp3s0"
 order += "battery 0"
 order += "battery 1"
@@ -19,6 +20,13 @@ ethernet ppp0 {
 	color_good = "#ffff00"
 	format_up = "VPN: %ip"
 	format_down = "VPN: down"
+}
+
+ethernet enp0s25 {
+	color_bad = "#880000"
+	color_good = "#6677cc"
+	format_up = "ETH: %ip"
+	format_down = "ETH: down"
 }
 
 wireless wlp3s0 {
