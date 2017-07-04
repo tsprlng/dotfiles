@@ -44,6 +44,9 @@ set incsearch
 set hlsearch
 
 
+autocmd FileType yaml setlocal expandtab shiftwidth=2 tabstop=2
+
+
 " Bonus plugins in case I can be arsed with this again
 if filereadable(expand("~/.vim/autoload/pathogen.vim"))
 	call pathogen#infect()
