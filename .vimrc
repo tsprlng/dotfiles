@@ -17,6 +17,10 @@ set autoindent  " Except this: preserve current indentation on new lines
 " Disable annoying bullshit ex mode binding which I often accidentally trigger when trying to hit ':'
 nnoremap Q <nop>
 
+" bad decision: nnoremap <C-w> :w<CR>
+nnoremap <C-t> :TagbarOpen j<CR>
+
+nnoremap Y y$
 
 " Make scrolling behaviour a little more pleasant and useful
 nnoremap <C-e> 3<C-e>
@@ -34,6 +38,7 @@ highlight CursorLineNr ctermbg=238 ctermfg=232
 set list
 set listchars=tab:\🢒\ ,trail:▸,nbsp:␣,precedes:←,extends:→
 set wrap
+set linebreak
 set showbreak=\ ...
 set breakindent
 highlight SpecialKey ctermfg=236
