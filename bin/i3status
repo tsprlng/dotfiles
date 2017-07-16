@@ -7,9 +7,14 @@ require 'json'
 
 dbus_events, dbus_event_sender = IO.pipe
 dbus_watcher = fork do
+	$0 = 'i3status (dbus watcher)'
 	dbus_events.close
-	session_bus = DBus.session_bus
-	pasockaddr = session_bus['org.PulseAudio1']['/org/pulseaudio/server_lookup1']['org.PulseAudio.ServerLookup1']['Address']
+
+	#session_bus = DBus.session_bus
+	#pasockaddr = session_bus['org.PulseAudio1']['/org/pulseaudio/server_lookup1']['org.PulseAudio.ServerLookup1']['Address']
+	#TODO why is org.PulseAudio1 missing sometimes on session start?
+	uid = `id -u`.chomp
+	pasockaddr = "unix:path=/run/user/#{uid}/pulse/dbus-socket"
 
 	retried = false
 	begin
@@ -48,6 +53,7 @@ dbus_watcher = fork do
 	loop << pa
 	loop.run
 end
+
 dbus_event_sender.close
 
 def get_brightness_percent
@@ -57,7 +63,7 @@ def get_brightness_percent
 end
 
 def get_volume_percent
-	`volume show`.chomp.chomp('%')  # TODO replace this shit with DBus query
+	`volume show`.chomp  # TODO replace this shit with DBus query
 end
 
 def date_pretty
@@ -76,19 +82,19 @@ def get_load_1m
 	loads.split(' ',2)[0]
 end
 
-def wlan_pretty
+def wlan_pretty(if_name)
 	ips = `ip -o -f inet addr show primary up`
-	ipline = ips.each_line  .select {|l| l.match /^\d+: wlp3s0/} .first
+	ipline = ips.each_line .find {|l| l.match /^\d+: #{if_name}/}
 	ip = (ipline.split(' inet ',2)[1]).split('/',2)[0]
 
 	wstat = IO.read '/proc/net/wireless'
-	stats = wstat.each_line .select {|l| l.match /^wlp3s0/} .first .split /\s+/
+	stats = wstat.each_line .find {|l| l.match /^#{if_name}/} .split /\s+/
 	"#{stats[3].chomp('.')}dB #{stats[5..10].map(&:to_i).inject(:+)}! #{ip}"
 end
 
-def eth_pretty
+def eth_pretty(if_name)
 	ips = `ip -o -f inet addr show primary up`
-	ipline = ips.each_line  .select {|l| l.match /^\d+: enp0s25/} .first
+	ipline = ips.each_line .find {|l| l.match /^\d+: #{if_name}/}
 	ip = (ipline.split(' inet ',2)[1]).split('/',2)[0]
 end
 
@@ -97,7 +103,10 @@ def disk_space
 end
 
 def memory_space
-	meminfo = IO.read '/proc/meminfo' .lines.to_a
+	lines = IO.read('/proc/meminfo').each_line.to_a
+	swap_free = lines.find {|l| l.match /^SwapFree:/ }.split(/\s+/)[1].to_f
+	mem_avail = lines.find {|l| l.match /^MemAvailable:/ }.split(/\s+/)[1].to_f
+	"#{(mem_avail / 1024 / 1024).round(1)}G #{(swap_free / 1024 / 1024).round(1)}G"
 end
 
 def battery_stuff(whichbat, label)
@@ -120,12 +129,22 @@ end
 
 def get_output_string
 	stuff = []
-	stuff << { name: :disk_info, instance: '/', full_text: disk_space }
-	stuff << ( { name: :ethernet, instance: 'enp0s25', color: '#6677cc', full_text: "E: #{eth_pretty}" } rescue { name: :ethernet, instance: 'enp0s25', color: '#880000', full_text: 'E: down' } )
-	stuff << ( { name: :wireless, instance: 'wlp3s0', color: '#6677cc', full_text: "W: #{wlan_pretty}" } rescue { name: :wireless, instance: 'wlp3s0', color: '#880000', full_text: 'W: down' } )
+	stuff << { name: :disk_info, instance: '/', color: '#666666', full_text: disk_space }
+	stuff << { name: :mem_info, color: '#666666', full_text: memory_space }
+	stuff.last.merge!({separator: true})
+
+	stuff << ( { name: :ethernet, instance: 'ppp0', color: '#ffff00', full_text: "VPN: #{eth_pretty 'ppp0'}" } rescue { name: :ethernet, instance: 'ppp0', color: '#444444', full_text: 'VPN: down' } )
+	stuff << ( { name: :ethernet, instance: 'enp0s25', color: '#6677cc', full_text: "E: #{eth_pretty 'enp0s25'}" } rescue { name: :ethernet, instance: 'enp0s25', color: '#880000', full_text: 'E: down' } )
+	stuff << ( { name: :wireless, instance: 'wlp3s0', color: '#6677cc', full_text: "W: #{wlan_pretty 'wlp3s0'}" } rescue { name: :wireless, instance: 'wlp3s0', color: '#880000', full_text: 'W: down' } )
+	stuff.last.merge!({separator: true})
+
 	stuff << battery_stuff('BAT0', 'int')
 	stuff << battery_stuff('BAT1', 'ext')
+	stuff.last.merge!({separator: true})
+
 	stuff << { name: :load, full_text: get_load_1m }
+	stuff.last.merge!({separator: true})
+
 	stuff << { name: :brightness, full_text: "☼ #{get_brightness_percent}%" }
 	volicon = case
 		when @cached_volume_percent.to_i > 50 then '🔊'
@@ -133,7 +152,19 @@ def get_output_string
 		else '🔇'
 	end
 	stuff << { name: :volume, full_text: "#{volicon} #{@cached_volume_percent}" }
+	stuff.last.merge!({separator: true})
+
 	stuff << { name: :tztime, instance: :local, full_text: date_pretty }
+
+	stuff.each do |item|
+		if item[:separator]
+			item[:separator_block_width] = 27
+		else
+			item[:separator] = false
+			item[:separator_block_width] = 13
+		end
+	end
+
 	return JSON.generate(stuff)
 end
 
@@ -163,7 +194,7 @@ while 1
 		end
 		if click['button'] == 3 && (click['name'] == 'wireless' || click['name'] == 'ethernet')
 			ips = `ip -o -f inet addr show primary up`
-			ipline = ips.each_line  .select {|l| l.match /^\d+: #{click['instance']}/} .first
+			ipline = ips.each_line .find {|l| l.match /^\d+: #{click['instance']}/}
 			ip = (ipline.split(' inet ',2)[1]).split('/',2)[0]
 			p = Process.spawn("echo #{ip} | xclip -selection clipboard || true")
 			Process.detach(p)
