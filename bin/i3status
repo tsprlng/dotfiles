@@ -177,7 +177,7 @@ redraw = Thread.new do
 	$stdout.syswrite "{\"version\":1, \"click_events\":true}\n"
 	$stdout.syswrite "[\n"
 	first = true
-	while 1
+	loop do
 		$stdout.syswrite "#{first ? '' : ','}#{get_output_string}\n"
 		first = false
 		t = Time.now
@@ -186,7 +186,7 @@ redraw = Thread.new do
 end
 
 receive_click_events = Thread.new do
-while 1
+loop do
 	begin
 		click = $stdin.gets
 		click = click[1..-1] if click.start_with? ','
@@ -209,7 +209,7 @@ Signal.trap 'USR1' do
 	redraw.run
 end
 
-while 1
+loop do
 	ev = dbus_events.gets
 	case ev.chomp
 		when 'volume', 'mute'
