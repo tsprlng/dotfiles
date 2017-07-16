@@ -1,6 +1,8 @@
-#!/bin/bash
+#!/usr/bin/zsh
 
 exec 2>/dev/null
+
+zmodload zsh/zselect
 
 get() {
   xbacklight
@@ -22,6 +24,12 @@ if [[ "$@" =~ up ]]; then
 elif [[ "$@" =~ down ]]; then
   xbacklight -$step -steps 1 -time 1
   notify
+elif [[ "$@" =~ max ]]; then
+  xbacklight '=100' -steps 1 -time 1
+  notify
+elif [[ "$@" =~ min ]]; then
+  zselect -t 80
+  xset dpms force off
 elif [[ "$@" =~ notify ]]; then
   notify
 else
