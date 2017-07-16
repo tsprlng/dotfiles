@@ -148,6 +148,10 @@ draw = Thread.new do
 	end
 end
 
+Signal.trap 'USR1' do
+	draw.run
+end
+
 while 1
 	ev = dbus_events.gets
 	case ev.chomp

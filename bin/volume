@@ -7,7 +7,6 @@ pactl list sinks | grep -e Volume -e 'Mute.*yes' | egrep -o -e Mute -e '[0123456
 }
 
 notify() {
- pkill -KILL -f /usr/bin/i3status;
  it=$(get)
  if [[ "$it" =~ M ]]; then
   volnoti-show -m || true
