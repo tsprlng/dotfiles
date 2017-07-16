@@ -96,6 +96,10 @@ def disk_space
 	`df -h /`.lines()[1].split(/\s+/)[3]
 end
 
+def memory_space
+	meminfo = IO.read '/proc/meminfo' .lines.to_a
+end
+
 def battery_stuff(whichbat, label)
 	designed_cap = IO.read("/sys/class/power_supply/#{whichbat}/energy_full_design").chomp.to_f
 	actual_cap = IO.read("/sys/class/power_supply/#{whichbat}/energy_full").chomp.to_f
@@ -138,7 +142,7 @@ end
 Thread.abort_on_exception = true
 first = true
 draw = Thread.new do
-	$stdout.syswrite "{\"version\":1}\n"
+	$stdout.syswrite "{\"version\":1, \"click_events\":true}\n"
 	$stdout.syswrite "[\n"
 	while 1
 		$stdout.syswrite "#{first ? '' : ','}#{get_output_string}\n"
@@ -146,6 +150,31 @@ draw = Thread.new do
 		t = Time.now
 		sleep ((5 - t.sec - t.subsec) % 5)
 	end
+end
+
+clicks = Thread.new do
+while 1
+	begin
+		click = $stdin.gets
+		if click.start_with? ','
+			click = JSON.parse(click[1..-1])
+		elsif click.start_with? '{'
+			click = JSON.parse(click)
+		end
+		if click['button'] == 3 && (click['name'] == 'wireless' || click['name'] == 'ethernet')
+			ips = `ip -o -f inet addr show primary up`
+			ipline = ips.each_line  .select {|l| l.match /^\d+: #{click['instance']}/} .first
+			ip = (ipline.split(' inet ',2)[1]).split('/',2)[0]
+			p = Process.spawn("echo #{ip} | xclip -selection clipboard || true")
+			Process.detach(p)
+		elsif click['button'] == 3 && click['name'] == 'tztime'
+			now = DateTime.now.new_offset(0)
+			p = Process.spawn("echo #{now.strftime('%Y-%m-%dT%H:%M:%SZ')} | xclip -selection clipboard || true")
+			Process.detach(p)
+		end
+	rescue
+	end
+end
 end
 
 Signal.trap 'USR1' do
@@ -161,6 +190,7 @@ while 1
 	end
 end
 
+clicks.join
 draw.join
 Process.kill('TERM', dbus_watcher) rescue nil  # rescue because what if it's already dead TODO is this good?
 Process.wait(dbus_watcher)
