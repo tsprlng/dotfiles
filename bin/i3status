@@ -4,27 +4,31 @@ require 'date'
 require 'dbus'
 require 'json'
 
+#session_bus = DBus.session_bus
+#pa_sock_addr = session_bus['org.PulseAudio1']['/org/pulseaudio/server_lookup1']['org.PulseAudio.ServerLookup1']['Address']
+#TODO why is org.PulseAudio1 missing sometimes on session start?
+pa_sock_addr = "unix:path=/run/user/#{Process.uid}/pulse/dbus-socket"
+
+retried = false
+begin
+	@pa_bus = DBus::Connection.new(pa_sock_addr)
+rescue
+	raise if retried
+	retried = true
+	$stderr.puts 'Loading pulseaudio dbus module'
+	`pactl load-module module-dbus-protocol`
+	sleep 1
+	retry
+end
+@pa_core = @pa_bus['org.PulseAudio1.Core1']['/org/pulseaudio/core1']
+@pa_core.default_iface = 'org.PulseAudio.Core1'
+
 dbus_events, dbus_event_sender = IO.pipe
 dbus_watcher = fork do
 	$0 = 'i3status (dbus watcher)'
 	dbus_events.close  # this end is for the parent to use to receive from us
 
-	#session_bus = DBus.session_bus
-	#pa_sock_addr = session_bus['org.PulseAudio1']['/org/pulseaudio/server_lookup1']['org.PulseAudio.ServerLookup1']['Address']
-	#TODO why is org.PulseAudio1 missing sometimes on session start?
-	pa_sock_addr = "unix:path=/run/user/#{Process.uid}/pulse/dbus-socket"
-
-	retried = false
-	begin
-		pa_bus = DBus::Connection.new(pa_sock_addr)
-	rescue
-		raise if retried
-		retried = true
-		$stderr.puts 'Loading pulseaudio dbus module'
-		`pactl load-module module-dbus-protocol`
-		sleep 1
-		retry
-	end
+	pa_bus = DBus::Connection.new(pa_sock_addr)
 	core = pa_bus['org.PulseAudio1.Core1']['/org/pulseaudio/core1']
 	core.default_iface = 'org.PulseAudio.Core1'
 
@@ -62,7 +66,11 @@ def get_brightness_percent
 end
 
 def get_volume_percent
-	`volume show`.chomp  # TODO replace this shit with DBus query
+	sink = @pa_core['org.PulseAudio.Core1'].GetSinkByName('@DEFAULT_SINK@')
+	sink = @pa_bus['org.PulseAudio1.Core1'][sink]['org.PulseAudio.Core1.Device']
+	port = sink['ActivePort'] rescue nil
+	port = @pa_bus['org.PulseAudio1.Core1'][port]['org.PulseAudio.Core1.DevicePort'] rescue nil
+	return (sink['Volume'].max.to_f * 100 / sink['BaseVolume']).round(0).to_s + '%' + "\n" + (sink['Mute'] ? 'Mute' : '') + "\n" + (port['Description'] rescue '')
 end
 
 def date_pretty
@@ -88,6 +96,7 @@ def get_ip(if_name)
 end
 
 def wlan_pretty(if_name)
+	return 'off' if `rfkill list wifi`.include? 'yes'
 	ip = get_ip(if_name)
 	wstat = IO.read '/proc/net/wireless'
 	stats = wstat.each_line .find {|l| l.match /^#{if_name}/} .split /\s+/
@@ -110,21 +119,40 @@ def memory_space
 end
 
 def battery_stuff(whichbat, label)
-	designed_cap = IO.read("/sys/class/power_supply/#{whichbat}/energy_full_design").chomp.to_f
-	actual_cap = IO.read("/sys/class/power_supply/#{whichbat}/energy_full").chomp.to_f
-	current = IO.read("/sys/class/power_supply/#{whichbat}/energy_now").chomp.to_f
-	status = IO.read("/sys/class/power_supply/#{whichbat}/status").chomp
+	begin
+		designed_cap = IO.read("/sys/class/power_supply/#{whichbat}/energy_full_design").chomp.to_f
+		actual_cap = IO.read("/sys/class/power_supply/#{whichbat}/energy_full").chomp.to_f
+		current = IO.read("/sys/class/power_supply/#{whichbat}/energy_now").chomp.to_f
+		status = IO.read("/sys/class/power_supply/#{whichbat}/status").chomp
 
-	percent = (100 * current / designed_cap).round(1)
+		percent = (100 * current / designed_cap).round(1)
 
-	color = case
-		when percent <= 5 then '#ff0000'
-		when (status == 'Full' || status == 'Unknown') && current >= (actual_cap * 0.97) then '#009900'
-		when (status == 'Charging' || status == 'Unknown') then '#dddd00'
-		else '#999999'
+		color = case
+			when (status == 'Charging' || status == 'Unknown') then '#dddd00'
+			when percent <= 5 then '#ff0000'
+			when (status == 'Full' || status == 'Unknown') && current >= (actual_cap * 0.97) then '#009900'
+			else '#999999'
+		end
+
+		{ name: :battery, instance: whichbat, color: color, full_text: "#{label} #{percent}" }
+	rescue
+		{ name: :battery, instance: whichbat, color: '#ff0000', full_text: "#{label} X" }
 	end
+end
 
-	{ name: :battery, instance: whichbat, color: color, full_text: "#{label} #{percent}" }
+def battery_summary
+	bats = ['/sys/class/power_supply/BAT0', '/sys/class/power_supply/BAT1']
+	ac = IO.read('/sys/class/power_supply/AC/online').to_i != 0
+	energy = bats.map {|b| IO.read("#{b}/energy_now").to_i }.inject(:+).to_f
+	power = bats.map {|b| IO.read("#{b}/power_now").to_i }.inject(:+).to_f
+	energy = bats.map {|b| IO.read("#{b}/energy_full").to_i }.inject(:+).to_f - energy if ac
+	$stderr.puts energy
+	$stderr.puts power
+	run_out = DateTime.now + (energy/power/24)
+	hours = (energy / power)
+	"#{hours.to_i}h#{((hours*60)%60).to_i}m"
+	#hours.round(1).to_s
+	#run_out.strftime '%H:%M'
 end
 
 def get_output_string
@@ -133,13 +161,24 @@ def get_output_string
 	stuff << { name: :mem_info, color: '#666666', full_text: memory_space }
 	stuff.last.merge!({separator: true})
 
+	if `rfkill list bluetooth`.include? 'yes'
+		stuff << ({name: :bluetooth, instance: :disabled, color: '#444444', full_text: 'BT'})
+	else
+		stuff << ({name: :bluetooth, instance: :enabled, color: '#6677cc', full_text: 'BT'})
+	end
 	stuff << ( { name: :ethernet, instance: 'ppp0', color: '#ffff00', full_text: "VPN: #{eth_pretty 'ppp0'}" } rescue { name: :ethernet, instance: 'ppp0', color: '#444444', full_text: 'VPN: down' } )
 	stuff << ( { name: :ethernet, instance: 'enp0s25', color: '#6677cc', full_text: "E: #{eth_pretty 'enp0s25'}" } rescue { name: :ethernet, instance: 'enp0s25', color: '#880000', full_text: 'E: down' } )
-	stuff << ( { name: :wireless, instance: 'wlp3s0', color: '#6677cc', full_text: "W: #{wlan_pretty 'wlp3s0'}" } rescue { name: :wireless, instance: 'wlp3s0', color: '#880000', full_text: 'W: down' } )
+	begin
+		wlan = wlan_pretty 'wlp3s0'
+		stuff <<  { name: :wireless, instance: 'wlp3s0', color: (wlan=='off' ? '#444444' : '#6677cc'), full_text: "W: #{wlan}" }
+	rescue
+		stuff << { name: :wireless, instance: 'wlp3s0', color: '#880000', full_text: 'W: down' }
+	end
 	stuff.last.merge!({separator: true})
 
 	stuff << battery_stuff('BAT0', 'int')
 	stuff << battery_stuff('BAT1', 'ext')
+	stuff << {name: :battery_summary, full_text: battery_summary } rescue nil
 	stuff.last.merge!({separator: true})
 
 	stuff << { name: :load, full_text: get_load_1m }
@@ -147,6 +186,7 @@ def get_output_string
 
 	stuff << { name: :brightness, full_text: "☼ #{get_brightness_percent}%" }
 	volicon = case
+		when (@cached_volume_percent.include? 'Headphones') then '🎧' + ((@cached_volume_percent.include? 'Mute') ? "\u0338" : '')
 		when @cached_volume_percent.to_i > 50 then '🔊'
 		when @cached_volume_percent.to_i > 0 && !(@cached_volume_percent.include? 'Mute') then '🔉'
 		else '🔇'
@@ -190,10 +230,18 @@ loop do
 	begin
 		click = $stdin.gets
 		click = click[1..-1] if click.start_with? ','
+		$stderr.puts click
 		click = JSON.parse(click)
 
 		if click['button'] == 3 && (click['name'] == 'wireless' || click['name'] == 'ethernet')
 			p = Process.spawn("echo #{get_ip click['instance']} | xclip -selection clipboard || true")
+			Process.detach(p)
+		elsif click['button'] == 1 && click['name'] == 'bluetooth'
+			$stderr.puts("/usr/sbin/rfkill #{click['instance']!='enabled' ? 'un' : ''}block bluetooth")
+			p = Process.spawn("/usr/sbin/rfkill #{click['instance']!='enabled' ? 'un' : ''}block bluetooth")
+			Process.detach(p)
+		elsif click['button'] == 1 && click['name'] == 'tztime'
+			p = Process.spawn(%q{gnome-terminal --geometry='70x10' --title='Calendar' --role=calendar -e 'bash -c "echo -ne \"\\033]0;Calendar\\007\"; cal -3; read -n 1"'})
 			Process.detach(p)
 		elsif click['button'] == 3 && click['name'] == 'tztime'
 			now = DateTime.now.new_offset(0)
