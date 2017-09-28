@@ -70,8 +70,9 @@ def commit(command, splitSpacesWorkspace=nil)
 	system command
 	if splitSpacesWorkspace
 		`i3-msg -t get_workspaces | jq -r 'sort_by(.visible) | .[] | .name'`.each_line do |name|
+			name = name.strip
 			output = (['0','9','8','x'].include? name) ? LaptopScreen : splitSpacesWorkspace
-			command = "i3-msg 'workspace #{name.strip}; move workspace to output #{output}'"
+			command = "i3-msg 'workspace #{name}; move workspace to output #{output}'"
 			puts command
 			`#{command}`
 		end
