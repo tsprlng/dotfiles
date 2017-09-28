@@ -6,6 +6,7 @@ bindsym $mod+Shift+Pause exec --no-startup-id ~/bin/lock
 bindsym XF86PowerOff exec --no-startup-id ~/bin/lock
 
 bindsym XF86LaunchA exec toggle-trackpad
+bindsym XF86Display exec displays --auto
 
 exec_always ~/.config/toms-special-i3-loginrc
 
@@ -149,6 +150,21 @@ bindsym $mod+Shift+j reload
 bindsym $mod+Shift+p restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+period exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
+
+mode "mode" {
+	bindsym Left move workspace to output left
+	bindsym h move workspace to output left
+	bindsym Up move workspace to output up
+	bindsym n move workspace to output up
+	bindsym Right move workspace to output right
+	bindsym s move workspace to output right
+	bindsym Down move workspace to output down
+	bindsym t move workspace to output down
+
+	bindsym Escape mode "default"
+	bindsym Return mode "default"
+}
+bindsym $mod+x mode "mode"
 
 # resize window (you can also use the mouse for that)
 mode "resize" {

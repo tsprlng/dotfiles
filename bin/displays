@@ -1,0 +1,101 @@
+#!/usr/bin/ruby
+
+require 'pp'
+
+LaptopScreen='eDP1'
+
+lidState = (File.read '/proc/acpi/button/lid/LID/state').split(/\s/)[-1] rescue nil
+
+$displays = Hash.new {|h,k| h[k]={}}
+display = nil
+key = nil
+
+`xrandr --verbose`.each_line do |l|
+	begin
+		if l =~ /^Screen/
+			next
+		elsif l =~ /^\S/
+			id, connected, rest = l.split(' ', 3)
+			raise "What does #{connected} mean for connection state?" unless connected == 'connected' or connected == 'disconnected'
+			display = $displays[id]
+			display['Interface'] = id
+			display['Connected'] = connected
+			display['Firstline'] = rest
+		elsif l =~ /:/ and not l =~ /^\s+(h|v|filter|supported|range):/
+			key, val = l.split(':', 2)
+			key = key.gsub(/\s/,'')
+			display[key] = val
+		elsif l =~ /\s+\d+x\d+/
+			key = 'modes'
+			display[key] = (display[key] || '') + l
+		else
+			display[key] += l
+		end
+	rescue
+		puts "Broke on line #{l}"
+		pp $displays
+		raise
+	end
+end
+
+$displays.each do |interface, display|
+	display.each do |key, value|
+		display[key] = value.strip
+	end
+	if display['EDID']
+		display['EDID'] = display['EDID'].gsub(/\s+/,'')
+		display['EDIDA'] = display['EDID'].scan(/\h\h/).map {|h| h.prepend('0x').oct.chr } .join
+		display['EDIDIDs'] = display['EDIDA'].scan(/(?:\w|\s){4,}/).map {|i| i.strip } .select {|i| not i.empty? } .to_a
+	end
+	if display['modes']
+		display['modes'] = display['modes'].lines.to_a
+	end
+	if display['BACKLIGHT']
+		raise unless display['BACKLIGHT'] == display['Backlight']
+		display.delete 'BACKLIGHT'
+		current, range = display['Backlight'].split(/\srange:\s/).map( &:strip )
+		display['Backlight'] = [ current.to_i, Range.new( *range.match(/\(\s*(\d+)\s*,\s*(\d+)\s*\)/).captures.map(&:to_i) )]
+	end
+	if display['CRTC'] || display['CRTCs']
+		display['CRTC'] = [ display['CRTC'], (display['CRTCs'] || '').split(/\s/) ]
+		display.delete 'CRTCs'
+	end
+	display['Connected'] = display['Connected'] == 'connected'
+end
+
+$displays[LaptopScreen]['Connected'] = false if lidState == 'closed'
+
+def commit(command, splitSpacesWorkspace=nil)
+	puts command
+	system command
+	if splitSpacesWorkspace
+		`i3-msg -t get_workspaces | jq -r 'sort_by(.visible) | .[] | .name'`.each_line do |name|
+			output = (['0','9','8','x'].include? name) ? LaptopScreen : splitSpacesWorkspace
+			command = "i3-msg 'workspace #{name.strip}; move workspace to output #{output}'"
+			puts command
+			`#{command}`
+		end
+	end
+	exit 0
+end
+
+def autodecide
+	which = $displays.select {|iface, d| d['Connected']}
+	if which.size == 2 and it = which.values.find {|d| d['EDIDIDs'].include? 'DELL U2715H'}
+		puts "Mr NEW DELL"
+		commit "xrandr --output eDP1 --auto --pos 0x1320 --output #{it['Interface']} --auto --primary --pos 1920x0", it['Interface']
+	end
+	if which.size == 2 and it = which.values.find {|d| d['EDIDIDs'].include? 'SyncMaster'}
+		puts "It SAMSUNG"
+		commit "xrandr --output eDP1 --auto --output #{it['Interface']} --auto --primary --right-of eDP1", it['Interface']
+	end
+	
+	puts "Falling back to built in display"
+	commit "xrandr --output eDP1 --primary --auto --output DP1 --off --output DP2 --off"
+end
+
+if ARGV.any?{|a| a.include? 'auto' }
+	autodecide
+else
+	pp $displays
+end
