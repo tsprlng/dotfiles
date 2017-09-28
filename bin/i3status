@@ -166,7 +166,7 @@ def get_output_string
 	else
 		stuff << ({name: :bluetooth, instance: :enabled, color: '#6677cc', full_text: 'BT'})
 	end
-	stuff << ( { name: :ethernet, instance: 'ppp0', color: '#ffff00', full_text: "VPN: #{eth_pretty 'ppp0'}" } rescue { name: :ethernet, instance: 'ppp0', color: '#444444', full_text: 'VPN: down' } )
+	stuff << ( { name: :ethernet, instance: 'tun0', color: '#ffff00', full_text: "VPN: #{eth_pretty 'tun0'}" } rescue { name: :ethernet, instance: 'tun0', color: '#444444', full_text: 'VPN: down' } )
 	stuff << ( { name: :ethernet, instance: 'enp0s25', color: '#6677cc', full_text: "E: #{eth_pretty 'enp0s25'}" } rescue { name: :ethernet, instance: 'enp0s25', color: '#880000', full_text: 'E: down' } )
 	begin
 		wlan = wlan_pretty 'wlp3s0'
