@@ -1,5 +1,11 @@
 set $mod Mod4
 
+for_window [window_role="calendar"] floating enable
+for_window [window_role="calendar"] sticky enable
+for_window [window_role="calendar"] move position mouse
+for_window [window_role="calendar"] move up 20px
+#for_window [window_role="calendar" con_id="__focused__"] kill
+
 hide_edge_borders both
 
 bindsym $mod+Shift+Pause exec --no-startup-id ~/bin/lock
