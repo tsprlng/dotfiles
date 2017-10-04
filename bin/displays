@@ -84,7 +84,7 @@ def autodecide
 	which = $displays.select {|iface, d| d['Connected']}
 	if which.size == 2 and it = which.values.find {|d| d['EDIDIDs'].include? 'DELL U2715H'}
 		puts "Mr NEW DELL"
-		commit "xrandr --output eDP1 --auto --pos 0x1320 --output #{it['Interface']} --auto --primary --pos 1920x0", it['Interface']
+		commit "xrandr --output eDP1 --auto --pos 0x1080 --output #{it['Interface']} --auto --primary --pos 1920x0", it['Interface']
 	end
 	if which.size == 2 and it = which.values.find {|d| d['EDIDIDs'].include? 'SyncMaster'}
 		puts "It SAMSUNG"
