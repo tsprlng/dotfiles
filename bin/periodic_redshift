@@ -1,7 +1,52 @@
-#!/usr/bin/zsh
-zmodload zsh/zselect
+#!/usr/bin/ruby
 
-while :; do
-	redshift -l 51.5:0 -m randr -v -o -t 5500:3500
-	zselect -t 8000 || true  # this is 80s (in 1/100s)
-done
+require 'date'
+require 'pp'
+require 'dbus'
+require 'json'
+
+system_bus = DBus.system_bus
+
+dbus_events, dbus_event_sender = IO.pipe
+dbus_watcher = fork do
+	$0 = 'periodic_redshift (dbus watcher)'
+	dbus_events.close  # this end is for the parent to use to receive from us
+
+	login1 = system_bus['org.freedesktop.login1']['/org/freedesktop/login1']
+	login1.default_iface = 'org.freedesktop.login1.Manager'
+
+	login1.on_signal('PrepareForSleep') do |goingToSleep|
+		dbus_event_sender.puts 'waking' unless goingToSleep
+	end
+
+	loop = DBus::Main.new
+	loop << system_bus
+	loop.run
+end
+at_exit do
+	Process.kill('TERM', dbus_watcher) rescue nil
+	Process.wait(dbus_watcher)
+end
+dbus_event_sender.close  # this end is for the child to use to send to us
+
+update_redshift = Thread.new do
+loop do
+	puts 'Running'
+	`redshift -l 51.5:0 -m randr -v -o -t 5500:4000`
+	sleep 120
+end
+end
+
+Signal.trap 'USR1' do
+	update_redshift.run
+end
+
+loop do
+	ev = dbus_events.gets
+	case ev.chomp
+		when 'waking'
+			update_redshift.run
+	end
+end
+
+update_redshift.join
