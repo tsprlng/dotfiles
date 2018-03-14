@@ -34,6 +34,7 @@ dbus_watcher = fork do
 
 	core.ListenForSignal('org.PulseAudio.Core1.Device.MuteUpdated', [])
 	core.ListenForSignal('org.PulseAudio.Core1.Device.VolumeUpdated', [])
+	# TODO also listen for device change
 
 	match_rule = DBus::MatchRule.new
 	match_rule.interface = 'org.PulseAudio.Core1.Device'
@@ -146,8 +147,6 @@ def battery_summary
 	energy = bats.map {|b| IO.read("#{b}/energy_now").to_i }.inject(:+).to_f
 	power = bats.map {|b| IO.read("#{b}/power_now").to_i }.inject(:+).to_f
 	energy = bats.map {|b| IO.read("#{b}/energy_full").to_i }.inject(:+).to_f - energy if ac
-	$stderr.puts energy
-	$stderr.puts power
 	run_out = DateTime.now + (energy/power/24)
 	hours = (energy / power)
 	"#{hours.to_i}h#{((hours*60)%60).to_i}m"
@@ -167,6 +166,7 @@ def get_output_string
 		stuff << ({name: :bluetooth, instance: :enabled, color: '#6677cc', full_text: 'BT'})
 	end
 	stuff << ( { name: :ethernet, instance: 'tun0', color: '#ffff00', full_text: "VPN: #{eth_pretty 'tun0'}" } rescue { name: :ethernet, instance: 'tun0', color: '#444444', full_text: 'VPN: down' } )
+	stuff << ( { name: :ethernet, instance: 'tun1', color: '#ffff00', full_text: "VPN: #{eth_pretty 'tun1'}" } rescue { name: :ethernet, instance: 'tun1', color: '#444444', full_text: 'VPN: down' } )
 	stuff << ( { name: :ethernet, instance: 'enp0s25', color: '#6677cc', full_text: "E: #{eth_pretty 'enp0s25'}" } rescue { name: :ethernet, instance: 'enp0s25', color: '#880000', full_text: 'E: down' } )
 	begin
 		wlan = wlan_pretty 'wlp3s0'
@@ -186,7 +186,7 @@ def get_output_string
 
 	stuff << { name: :brightness, full_text: "☼ #{get_brightness_percent}%" }
 	volicon = case
-		when (@cached_volume_percent.include? 'Headphones') then '🎧' + ((@cached_volume_percent.include? 'Mute') ? "\u0338" : '')
+		when (@cached_volume_percent.include? 'Headphones') then '🎧' + ((@cached_volume_percent.to_i == 0 || @cached_volume_percent.include?('Mute')) ? "\u0338" : '')
 		when @cached_volume_percent.to_i > 50 then '🔊'
 		when @cached_volume_percent.to_i > 0 && !(@cached_volume_percent.include? 'Mute') then '🔉'
 		else '🔇'
@@ -230,7 +230,6 @@ loop do
 	begin
 		click = $stdin.gets
 		click = click[1..-1] if click.start_with? ','
-		$stderr.puts click
 		click = JSON.parse(click)
 
 		if click['button'] == 3 && (click['name'] == 'wireless' || click['name'] == 'ethernet')
@@ -241,7 +240,7 @@ loop do
 			p = Process.spawn("/usr/sbin/rfkill #{click['instance']!='enabled' ? 'un' : ''}block bluetooth")
 			Process.detach(p)
 		elsif click['button'] == 1 && click['name'] == 'tztime'
-			p = Process.spawn(%q{gnome-terminal --geometry='70x10' --title='Calendar' --role=calendar -e 'bash -c "echo -ne \"\\033]0;Calendar\\007\"; cal -3; read -n 1"'})
+			p = Process.spawn(%q{gnome-terminal --geometry='70x28' --title='Calendar' --role=calendar -e 'bash -c "echo -ne \"\\033]0;Calendar\\007\"; cal -B 3 -A 5; read -n 1"'})
 			Process.detach(p)
 		elsif click['button'] == 3 && click['name'] == 'tztime'
 			now = DateTime.now.new_offset(0)
