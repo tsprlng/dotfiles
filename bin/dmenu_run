@@ -13,8 +13,16 @@ firefox -private
 i3-sensible-terminal
 nm-applet'
 
+more_stuff="$(find /usr/share/applications -name \*.desktop | sort | perl -pe 's[/usr/share/applications/][]; s[.desktop][ *]')"
+
 rename="i3-msg 'rename workspace to \"$(i3-msg -t get_workspaces | jq -r '.[] | select(.focused) | .name')\"'"
 
-todo=$( (echo "$stuff"; echo "$rename"; dmenu_path) | dmenu "$@" )
+todo=$( (echo "$stuff"; echo "$more_stuff"; echo "$rename"; dmenu_path) | dmenu -f -i -nb '#150800' -sb '#f80' -sf '#000' -p 'launch' -l 17 "$@" )
 
-eval "$todo &!"
+echo "$todo" | while read thing; do
+	if [[ "$thing" =~ " \*" ]]; then
+		gtk-launch "${thing%% \*}.desktop"
+	else
+		eval "$thing &!"
+	fi
+done
