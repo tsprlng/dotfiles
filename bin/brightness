@@ -1,6 +1,6 @@
 #!/usr/bin/zsh
 
-exec 2>/dev/null
+exec 2>> /dev/null
 
 zmodload zsh/zselect
 
@@ -14,7 +14,7 @@ notify() {
 
 step=3
 curr="$(get)"
-if (( "${curr%%.*}" < 20 )); then
+if [[ "${curr%%.*}" -lt 20 ]]; then
 	step='1'
 fi
 
