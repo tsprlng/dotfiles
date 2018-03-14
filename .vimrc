@@ -60,3 +60,10 @@ if filereadable(expand("~/.vim/autoload/pathogen.vim"))
 	call pathogen#infect()
 	noremap <C-p> :NERDTreeFind<CR>
 endif
+
+let g:tagbar_type_ls = {
+	\ 'ctagstype' : 'livescript',
+	\ 'kinds' : [
+		\ 'f:functions',
+	\ ]
+\ }
