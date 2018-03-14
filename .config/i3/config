@@ -1,5 +1,6 @@
 set $mod Mod4
 
+for_window [title=".*[Ss]lack.*[Cc]all.*"] floating enable
 for_window [window_role="calendar"] floating enable
 for_window [window_role="calendar"] sticky enable
 for_window [window_role="calendar"] move position mouse
