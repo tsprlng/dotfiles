@@ -12,12 +12,12 @@ for_window [window_role="calendar"] move up 20px
 hide_edge_borders both
 
 bindsym $mod+Shift+Pause exec --no-startup-id ~/bin/lock
-bindsym XF86PowerOff exec --no-startup-id ~/bin/lock
+bindsym XF86PowerOff exec --no-startup-id ~/bin/i3_toggle_onboard
 
 bindsym XF86LaunchA exec toggle-trackpad
 bindsym XF86Display exec displays --auto
 
-exec_always ~/.config/toms-special-i3-loginrc
+exec_always ~/.config/graphical-rc
 
 #exec --no-startup-id /bin/bash -c "sleep 1; i3-msg 'workspace 0; append_layout ~/.config/login-i3-layout'"
 
@@ -26,7 +26,7 @@ exec sleep 2; exec parcellite
 exec sleep 2; exec systemd-inhibit --what=handle-lid-switch --why 'h8 sleeping' sleep 1000d
 
 # note commented out focus mode_toggle to do this
-bindsym $mod+space exec dmenu_run
+bindsym $mod+space exec ~/bin/dmenu_run
 
 bindsym Print exec shutter
 
@@ -210,7 +210,7 @@ bar {
 		focused_workspace #ff00ff #000000 #ffffff
 		#separator #111111
 	}
-	status_command i3status 2>~/.log-i3status
+	status_command ~/bin/i3status 2>~/.log-i3status
 	#separator_symbol ——
 	#separator_symbol " "
 	tray_output primary

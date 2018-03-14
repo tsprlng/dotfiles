@@ -1,64 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'date'
-require 'dbus'
 require 'json'
-
-#session_bus = DBus.session_bus
-#pa_sock_addr = session_bus['org.PulseAudio1']['/org/pulseaudio/server_lookup1']['org.PulseAudio.ServerLookup1']['Address']
-#TODO why is org.PulseAudio1 missing sometimes on session start?
-pa_sock_addr = "unix:path=/run/user/#{Process.uid}/pulse/dbus-socket"
-
-retried = false
-begin
-	@pa_bus = DBus::Connection.new(pa_sock_addr)
-rescue
-	raise if retried
-	retried = true
-	$stderr.puts 'Loading pulseaudio dbus module'
-	`pactl load-module module-dbus-protocol`
-	sleep 1
-	retry
-end
-@pa_core = @pa_bus['org.PulseAudio1.Core1']['/org/pulseaudio/core1']
-@pa_core.default_iface = 'org.PulseAudio.Core1'
-
-dbus_events, dbus_event_sender = IO.pipe
-dbus_watcher = fork do
-	$0 = 'i3status (dbus watcher)'
-	dbus_events.close  # this end is for the parent to use to receive from us
-
-	pa_bus = DBus::Connection.new(pa_sock_addr)
-	core = pa_bus['org.PulseAudio1.Core1']['/org/pulseaudio/core1']
-	core.default_iface = 'org.PulseAudio.Core1'
-
-	core.ListenForSignal('org.PulseAudio.Core1.Device.MuteUpdated', [])
-	core.ListenForSignal('org.PulseAudio.Core1.Device.VolumeUpdated', [])
-	# TODO also listen for device change
-
-	match_rule = DBus::MatchRule.new
-	match_rule.interface = 'org.PulseAudio.Core1.Device'
-	match_rule.member = 'MuteUpdated'
-	pa_bus.add_match(match_rule) do |state|
-		dbus_event_sender.puts 'mute' if state.path.include? 'sink'
-	end
-
-	match_rule = DBus::MatchRule.new
-	match_rule.interface = 'org.PulseAudio.Core1.Device'
-	match_rule.member = 'VolumeUpdated'
-	pa_bus.add_match(match_rule) do |state|
-		dbus_event_sender.puts 'volume' if state.path.include? 'sink'
-	end
-
-	loop = DBus::Main.new
-	loop << pa_bus
-	loop.run
-end
-at_exit do
-	Process.kill('TERM', dbus_watcher) rescue nil
-	Process.wait(dbus_watcher)
-end
-dbus_event_sender.close  # this end is for the child to use to send to us
 
 def get_brightness_percent
 	curr = IO.read '/sys/class/backlight/intel_backlight/actual_brightness'
@@ -67,11 +10,7 @@ def get_brightness_percent
 end
 
 def get_volume_percent
-	sink = @pa_core['org.PulseAudio.Core1'].GetSinkByName('@DEFAULT_SINK@')
-	sink = @pa_bus['org.PulseAudio1.Core1'][sink]['org.PulseAudio.Core1.Device']
-	port = sink['ActivePort'] rescue nil
-	port = @pa_bus['org.PulseAudio1.Core1'][port]['org.PulseAudio.Core1.DevicePort'] rescue nil
-	return (sink['Volume'].max.to_f * 100 / sink['BaseVolume']).round(0).to_s + '%' + "\n" + (sink['Mute'] ? 'Mute' : '') + "\n" + (port['Description'] rescue '')
+	`~/bin/volume`
 end
 
 def date_pretty
@@ -166,18 +105,16 @@ def get_output_string
 		stuff << ({name: :bluetooth, instance: :enabled, color: '#6677cc', full_text: 'BT'})
 	end
 	stuff << ( { name: :ethernet, instance: 'tun0', color: '#ffff00', full_text: "VPN: #{eth_pretty 'tun0'}" } rescue { name: :ethernet, instance: 'tun0', color: '#444444', full_text: 'VPN: down' } )
-	stuff << ( { name: :ethernet, instance: 'tun1', color: '#ffff00', full_text: "VPN: #{eth_pretty 'tun1'}" } rescue { name: :ethernet, instance: 'tun1', color: '#444444', full_text: 'VPN: down' } )
-	stuff << ( { name: :ethernet, instance: 'enp0s25', color: '#6677cc', full_text: "E: #{eth_pretty 'enp0s25'}" } rescue { name: :ethernet, instance: 'enp0s25', color: '#880000', full_text: 'E: down' } )
+	stuff << ( { name: :ethernet, instance: 'enp0s31f6', color: '#6677cc', full_text: "E: #{eth_pretty 'enp0s31f6'}" } rescue { name: :ethernet, instance: 'enp0s31f6', color: '#880000', full_text: 'E: down' } )
 	begin
-		wlan = wlan_pretty 'wlp3s0'
-		stuff <<  { name: :wireless, instance: 'wlp3s0', color: (wlan=='off' ? '#444444' : '#6677cc'), full_text: "W: #{wlan}" }
+		wlan = wlan_pretty 'wlp4s0'
+		stuff <<  { name: :wireless, instance: 'wlp4s0', color: (wlan=='off' ? '#444444' : '#6677cc'), full_text: "W: #{wlan}" }
 	rescue
-		stuff << { name: :wireless, instance: 'wlp3s0', color: '#880000', full_text: 'W: down' }
+		stuff << { name: :wireless, instance: 'wlp4s0', color: '#880000', full_text: 'W: down' }
 	end
 	stuff.last.merge!({separator: true})
 
-	stuff << battery_stuff('BAT0', 'int')
-	stuff << battery_stuff('BAT1', 'ext')
+	stuff << battery_stuff('BAT0', 'batt')
 	stuff << {name: :battery_summary, full_text: battery_summary } rescue nil
 	stuff.last.merge!({separator: true})
 
@@ -186,7 +123,7 @@ def get_output_string
 
 	stuff << { name: :brightness, full_text: "☼ #{get_brightness_percent}%" }
 	volicon = case
-		when (@cached_volume_percent.include? 'Headphones') then '🎧' + ((@cached_volume_percent.to_i == 0 || @cached_volume_percent.include?('Mute')) ? "\u0338" : '')
+		when (@cached_volume_percent.include? 'Headphone') then '🎧' + ((@cached_volume_percent.include? 'Mute') ? "\u0338" : '')
 		when @cached_volume_percent.to_i > 50 then '🔊'
 		when @cached_volume_percent.to_i > 0 && !(@cached_volume_percent.include? 'Mute') then '🔉'
 		else '🔇'
@@ -256,14 +193,21 @@ Signal.trap 'USR1' do
 	redraw.run
 end
 
+$alsa_pid = nil
+at_exit { $alsa_pid && Process.kill($alsa_pid) }
+receive_alsa_events = Thread.new do
 loop do
-	ev = dbus_events.gets
-	case ev.chomp
-		when 'volume', 'mute'
-			@cached_volume_percent = get_volume_percent
+	IO.popen "stdbuf -oL alsactl monitor" do |io|
+		$alsa_pid = io.pid
+		Process.detach($alsa_pid)
+		io.each do |line|
+			@cached_volume_percent = get_volume_percent  # TODO deduplicate (left+right?) events
 			redraw.run
+		end
 	end
 end
+end
 
+receive_alsa_events.join
 receive_click_events.join
 redraw.join
