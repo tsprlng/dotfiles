@@ -67,14 +67,14 @@ $displays[LaptopScreen]['Connected'] = false if lidState == 'closed'
 
 def commit(command, splitSpacesWorkspace=nil)
 	puts command
-	system command
+	system command unless $fake
 	if splitSpacesWorkspace
 		`i3-msg -t get_workspaces | jq -r 'sort_by(.visible) | .[] | .name'`.each_line do |name|
 			name = name.strip
 			output = (['0','9','8','x'].include? name) ? LaptopScreen : splitSpacesWorkspace
 			command = "i3-msg 'workspace #{name}; move workspace to output #{output}'"
 			puts command
-			`#{command}`
+			`#{command}` unless $fake
 		end
 	end
 	exit 0
@@ -90,12 +90,21 @@ def autodecide
 		puts "It SAMSUNG"
 		commit "xrandr --output eDP1 --auto --output #{it['Interface']} --auto --primary --right-of eDP1", it['Interface']
 	end
+	if which.size == 2 and it = which.values.find {|d| d['EDIDIDs'].include? 'G501H888781L'}
+		#puts "Stupid HDMI adaptor"
+		#commit "xrandr --output eDP1 --auto --output #{it['Interface']} --auto --primary --right-of eDP1", it['Interface']
+		puts "Old DELL on desk"
+		commit "xrandr --output #{it['Interface']} --auto --primary --output eDP1 --auto --right-of #{it['Interface']}", it['Interface']
+	end
 	
 	puts "Falling back to built in display"
-	commit "xrandr --output eDP1 --primary --auto --output DP1 --off --output DP2 --off"
+	commit "xrandr --output eDP1 --primary --auto --output DP1 --off --output DP2 --off --output HDMI1 --off --output VIRTUAL1 --off"
 end
 
 if ARGV.any?{|a| a.include? 'auto' }
+	autodecide
+elsif ARGV.include? '-n'
+	$fake = true
 	autodecide
 else
 	pp $displays
