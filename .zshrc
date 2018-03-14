@@ -132,6 +132,8 @@ ssh-add() {
 
 alias ls='ls --color=auto'
 alias l='ls -al'
+alias les='less'
+alias lef='less +F'
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
 alias less='less -R'  # color control chars allowed through
@@ -154,7 +156,22 @@ alias tiga='tig --all'
 alias tigc='git tigc'
 alias gka='gitk --all&'
 
+alias ack-tf='ack **/*.tfstate.d(P:--ignore-dir:) --ignore-file "match:/.*\.tfstate/"'
+
+alias boldaws='aws --profile bold'
+
+alias n='i3-sensible-terminal . >/dev/null 2>&1'
+
 export VISUAL=vi
 export EDITOR=vi
 
+export PATH="/home/tds/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
+if [[ -x /usr/local/bin/aws_zsh_completer.sh ]]; then
+	source /usr/local/bin/aws_zsh_completer.sh
+fi
+
 dotfiles status -s
+hash -d vg=~/Documents/velo/git
