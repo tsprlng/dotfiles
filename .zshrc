@@ -122,13 +122,20 @@ ssh_bootstrap() {
 	ssh $1 -- grep -q '"dotfiles()\s*{"' .zshrc || (whence -f dotfiles | ssh $1 -- tee -a .zshrc)
 }
 
+ssh-add() {
+	if [ -z "$*" ]; then
+		ssh-add -c ~/.ssh/id_ed25519 ~/.ssh/velo_id_ed25519
+	else
+		command ssh-add "$@"
+	fi
+}
+
 alias ls='ls --color=auto'
 alias l='ls -al'
 alias pbcopy='xclip -selection clipboard'
 alias pbpaste='xclip -selection clipboard -o'
 alias less='less -R'  # color control chars allowed through
 alias grep='grep --color=auto'
-alias ssh-add='ssh-add -c ~/.ssh/id_ed25519'
 alias mux='pgrep -lfa "ssh.*\[mux\]" -u "$USER"'
 alias gtypist='gtypist -wSbq'
 
