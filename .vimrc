@@ -50,6 +50,9 @@ set hlsearch
 
 
 autocmd FileType yaml setlocal expandtab shiftwidth=2 tabstop=2
+autocmd FileType haskell setlocal expandtab shiftwidth=2 tabstop=2
+autocmd FileType json setlocal expandtab shiftwidth=2 tabstop=2
+autocmd FileType hcl setlocal expandtab shiftwidth=2 tabstop=2
 
 
 " Bonus plugins in case I can be arsed with this again
