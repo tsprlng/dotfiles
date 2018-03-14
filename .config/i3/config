@@ -23,7 +23,7 @@ exec_always ~/.config/toms-special-i3-loginrc
 
 exec periodic_redshift
 exec sleep 2; exec parcellite
-#exec sleep 2; exec systemd-inhibit --what=handle-power-key:handle-suspend-key:handle-hibernate-key:handle-lid-switch --why 'h8 sleeping' sleep 1000d
+exec sleep 2; exec systemd-inhibit --what=handle-lid-switch --why 'h8 sleeping' sleep 1000d
 
 # note commented out focus mode_toggle to do this
 bindsym $mod+space exec dmenu_run
