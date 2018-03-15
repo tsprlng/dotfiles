@@ -21,7 +21,8 @@ exec_always ~/.config/graphical-rc
 
 #exec --no-startup-id /bin/bash -c "sleep 1; i3-msg 'workspace 0; append_layout ~/.config/login-i3-layout'"
 
-exec periodic_redshift
+exec ~/bin/autorotate
+exec ~/bin/periodic_redshift
 exec sleep 2; exec parcellite
 exec sleep 2; exec systemd-inhibit --what=handle-lid-switch --why 'h8 sleeping' sleep 1000d
 

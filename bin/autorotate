@@ -1,0 +1,33 @@
+#!/usr/bin/zsh -e
+zmodload zsh/zselect
+accelerometer="$(ls /sys/bus/iio/devices/iio:device*/in_accel_y_raw)"
+
+y="$(< "$accelerometer")"
+if [[ "$y" == -* ]]; then
+	(( curr = 3 ))
+else
+	(( curr = 2 ))
+fi
+
+while :; do
+	y="$(< "$accelerometer")"
+	if [[ "$y" == -* ]]; then
+		(( curr == 1 )) || (( curr -= 1 ))
+	else
+		(( curr == 4 )) || (( curr += 1 ))
+	fi
+
+	if (( curr == 2 )); then
+		xrandr --output eDP-1 --rotate normal
+		xinput map-to-output 'Wacom Pen and multitouch sensor Pen stylus' eDP-1
+		xinput map-to-output 'Wacom Pen and multitouch sensor Finger touch' eDP-1
+		xinput map-to-output 'Wacom Pen and multitouch sensor Pen eraser' eDP-1
+	elif (( curr == 3 )); then
+		xrandr --output eDP-1 --rotate inverted
+		xinput map-to-output 'Wacom Pen and multitouch sensor Pen stylus' eDP-1
+		xinput map-to-output 'Wacom Pen and multitouch sensor Finger touch' eDP-1
+		xinput map-to-output 'Wacom Pen and multitouch sensor Pen eraser' eDP-1
+	fi
+
+	zselect -t 150 || true  # sleep for 1.5s
+done
