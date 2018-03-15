@@ -165,9 +165,11 @@ alias n='i3-sensible-terminal . >/dev/null 2>&1'
 export VISUAL=vi
 export EDITOR=vi
 
-export PATH="/home/tds/.pyenv/bin:$PATH"
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+if whence pyenv >/dev/null; then
+	export PATH="/home/tds/.pyenv/bin:$PATH"
+	eval "$(pyenv init -)"
+	eval "$(pyenv virtualenv-init -)"
+fi
 
 if [[ -x /usr/local/bin/aws_zsh_completer.sh ]]; then
 	source /usr/local/bin/aws_zsh_completer.sh
