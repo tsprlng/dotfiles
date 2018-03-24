@@ -1,0 +1,16 @@
+//{
+//  "layout": "splitv",
+//  "percent": 0.7,
+//  "type": "con",
+//  "nodes": [
+    {
+      "name": "onboard",
+      "percent": 0.4,
+      "swallows": [
+        {
+          "class": "Onboard"
+        }
+      ]
+    }
+//  ]
+//}
