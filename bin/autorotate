@@ -11,9 +11,11 @@ fi
 
 while :; do
 	y="$(< "$accelerometer")"
-	if [[ "$y" == -* ]]; then
+	if (( y < -500000 )); then
+		echo goin down
 		(( curr == 1 )) || (( curr -= 1 ))
-	else
+	elif (( y > 500000 )); then
+		echo goin up
 		(( curr == 4 )) || (( curr += 1 ))
 	fi
 
