@@ -246,6 +246,18 @@ loop do
 			now = DateTime.now.new_offset(0)
 			p = Process.spawn("echo #{now.strftime('%Y-%m-%dT%H:%M:%SZ')} | xclip -selection clipboard || true")
 			Process.detach(p)
+		elsif click['name'] == 'volume'
+			if click['button'] == 4
+				`volume up`
+			elsif click['button'] == 5
+				`volume down`
+			end
+		elsif click['name'] == 'brightness'
+			if click['button'] == 4
+				`brightness up`
+			elsif click['button'] == 5
+				`brightness down`
+			end
 		end
 	rescue
 	end
