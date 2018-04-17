@@ -133,6 +133,7 @@ def get_output_string
 	stuff.last.merge!({color: '#dd8800'}) if @cached_volume_percent.include? 'Mute'
 
 	stuff << { name: :tztime, instance: :local, full_text: date_pretty }
+	stuff << { name: :caps, full_text: "CAPS", background: '#aa0000' } if @capslock
 
 	stuff.each do |item|
 		if item[:separator]
@@ -147,6 +148,7 @@ def get_output_string
 end
 
 @cached_volume_percent = get_volume_percent
+@capslock = false
 
 Thread.abort_on_exception = true
 
@@ -220,6 +222,28 @@ loop do
 end
 end
 
+$xkb_pid = nil
+at_exit { $xkb_pid && Process.kill($xkb_pid) }
+receive_xkb_events = Thread.new do
+loop do
+	IO.popen "stdbuf -oL xkbevd" do |io|
+		$xkb_pid = io.pid
+		Process.detach($xkb_pid)
+		watching = false
+		io.each do |line|
+			if watching
+				@capslock = line.include? 'new state= 0x00000001'
+				watching = false
+				redraw.run
+			else
+				watching = true if line.include? 'XkbIndicatorStateNotify'
+			end
+		end
+	end
+end
+end
+
 receive_alsa_events.join
+receive_xkb_events.join
 receive_click_events.join
 redraw.join
