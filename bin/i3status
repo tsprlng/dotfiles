@@ -179,7 +179,7 @@ loop do
 			p = Process.spawn("/usr/sbin/rfkill #{click['instance']!='enabled' ? 'un' : ''}block bluetooth")
 			Process.detach(p)
 		elsif click['button'] == 1 && click['name'] == 'tztime'
-			p = Process.spawn(%q{gnome-terminal --geometry='70x28' --title='Calendar' --role=calendar -e 'bash -c "echo -ne \"\\033]0;Calendar\\007\"; cal -B 3 -A 5; read -n 1"'})
+			p = Process.spawn(%q{terminator --geometry='560x440' -bm --title='Calendar' --role=calendar -e 'bash -c "echo -ne \"\\033]0;Calendar\\007\"; cal -n 9 -S; read -n 1"'})
 			Process.detach(p)
 		elsif click['button'] == 3 && click['name'] == 'tztime'
 			now = DateTime.now.new_offset(0)

@@ -1,7 +1,7 @@
 #!/usr/bin/zsh
 
 stuff='firefox
-chromium-browser
+chromium
 intellij
 subl
 gedit
