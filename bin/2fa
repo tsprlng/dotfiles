@@ -1,0 +1,13 @@
+#!/usr/bin/ruby
+
+key=ARGV[0]
+xargs=ARGV[1..-1].join ' '
+
+File.read("/home/tds/.2fa").each_line do |line|
+	if /.*#{key}.*:\s*(.*)$/ =~ line
+		args = $1
+		puts `oathtool --totp #{args} #{xargs} | xclip -f`
+		exit
+	end
+end
+exit 1
