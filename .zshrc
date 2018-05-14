@@ -165,6 +165,8 @@ alias n='i3-sensible-terminal . >/dev/null 2>&1'
 export VISUAL=vi
 export EDITOR=vi
 
+autoload -z edit-command-line && zle -N edit-command-line && bindkey '^X^E' edit-command-line
+
 if whence pyenv >/dev/null; then
 	export PATH="/home/tds/.pyenv/bin:$PATH"
 	eval "$(pyenv init -)"
