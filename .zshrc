@@ -77,6 +77,9 @@ WORDCHARS=''  # I like being able to ^W path components one by one. By default t
 bindkey "^[[1;5C" forward-word ; bindkey "^[[1;5D" backward-word  # ctrl-left and -right
 stty stop undef start undef  # I find ^s "stop" behaviour very annoying
 
+bindkey '^[[3~' delete-char  # TODO why did this "just work" on Ubuntu?
+bindkey '^[3;5~' delete-char
+
 setopt histverify histreduceblanks histignorespace
 setopt histignorealldups sharehistory extendedhistory appendhistory incappendhistory
 HISTSIZE=10000
