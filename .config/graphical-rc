@@ -1,17 +1,18 @@
 #!/bin/bash
 
-setxkbmap -option -option caps:backspace -option shift:both_capslock -option numpad:mac
+setxkbmap -option -option caps:backspace -option shift:both_capslock -option numpad:mac dvorak
 
 mkdir -p $HOME/.xkb/keymap
 setxkbmap -print | sed -e '/xkb_symbols/s/"[[:space:]]/+local&/' > $HOME/.xkb/keymap/custom
 xkbcomp -w0 -I$HOME/.xkb/ -R$HOME/.xkb/ keymap/custom $DISPLAY
 
 #xsetroot -bitmap Pictures/leave-it.xbm -bg maroon -fg black
-(xli -onroot Pictures/leave-it.png || xsetroot -solid darkgreen) >/dev/null 2>&1
+#(xli -onroot Pictures/leave-it.png || xsetroot -solid darkgreen) >/dev/null 2>&1
+feh --no-fehbg --bg-tile pics/peacock.jpg
 
 synclient \
   TapButton1=0 TapButton2=0 \
   RightButtonArea{Left,Right,Top,Bottom}=0 \
   VertEdgeScroll=0 \
   HorizTwoFingerScroll=1 HorizScrollDelta=20 \
-  TouchpadOff=1 ClickFinger1=0 ClickFinger2=0  # turn it off by default; as in ~/bin/toggle-trackpad
+  TouchpadOff=0 ClickFinger1=1 ClickFinger2=3
