@@ -32,7 +32,7 @@ dbus_event_sender.close  # this end is for the child to use to send to us
 update_redshift = Thread.new do
 loop do
 	puts 'Running'
-	`redshift -l 51.5:0 -m randr -v -o -t 5500:4000`
+	`redshift -l 51.5:0 -m randr -v -Po -t 5500:4000`
 	sleep 120
 end
 end

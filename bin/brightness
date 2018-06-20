@@ -1,31 +1,33 @@
 #!/usr/bin/zsh
 
-exec 2>> /dev/null
+device="/sys/class/backlight/intel_backlight"
+curr="$(< "$device/brightness")"
+max="$(< "$device/max_brightness")"
 
-zmodload zsh/zselect
+step=30
+if (( $curr * 100 / $max < 8 )); then
+	step=3
+fi
 
 get() {
-  xbacklight
+  echo "$curr / $max"
+  echo "$(( $curr * 100 / $max ))"
 }
 
 notify() {
- pkill -USR1 -o -f ~/bin/i3status
+  pkill -USR1 -o -f ~/bin/i3status
 }
 
-step=3
-curr="$(get)"
-if [[ "${curr%%.*}" -lt 20 ]]; then
-	step='1'
-fi
-
 if [[ "$@" =~ up ]]; then
-  xbacklight +$step -steps 1 -time 1
+  (( $step + $curr > $max )) && step="$(( $max - $curr ))"
+  echo "$(( $curr + step ))" > "$device/brightness"
   notify
 elif [[ "$@" =~ down ]]; then
-  xbacklight -$step -steps 1 -time 1
+  (( $step > $curr )) && step=$curr
+  echo "$(( $curr - step ))" > "$device/brightness"
   notify
 elif [[ "$@" =~ max ]]; then
-  xbacklight '=100' -steps 1 -time 1
+  echo "$max" > "$device/brightness"
   notify
 elif [[ "$@" =~ min ]]; then
   zselect -t 80

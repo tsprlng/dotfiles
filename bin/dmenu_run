@@ -1,7 +1,7 @@
 #!/usr/bin/zsh
 
 stuff='firefox
-chromium-browser
+chromium
 intellij
 subl
 gedit
@@ -17,12 +17,13 @@ more_stuff="$(find /usr/share/applications -name \*.desktop | sort | perl -pe 's
 
 rename="i3-msg 'rename workspace to \"$(i3-msg -t get_workspaces | jq -r '.[] | select(.focused) | .name')\"'"
 
-todo=$( (echo "$stuff"; echo "$more_stuff"; echo "$rename"; dmenu_path) | dmenu -f -i -nb '#150800' -sb '#f80' -sf '#000' -p 'launch' -l 17 "$@" )
+todo=$( (echo "$stuff"; echo "$more_stuff"; echo "$rename"; dmenu_path) | dmenu -f -i -fn "FantasqueSansMono" -nb '#150800' -sb '#f80' -sf '#000' -p 'launch' -l 17 "$@" )
 
 echo "$todo" | while read thing; do
 	if [[ "$thing" =~ " \*" ]]; then
 		gtk-launch "${thing%% \*}.desktop"
 	else
+		PATH=~/bin:"$PATH"
 		eval "$thing &!"
 	fi
 done

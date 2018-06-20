@@ -1,42 +1,48 @@
 #!/bin/bash
 
-exec 2>/dev/null
+amixer -c 1 cget numid=24 | tail -n 1 | fgrep -q 'on'
+is_headphone=$?
+
+set -e
 
 get() {
-  local vols="$(pactl list sinks | grep -e Volume -e 'Mute.*yes' | egrep -o -e Mute -e '[0123456789]+%')"
-  if [[ "$vols" =~ Mute* ]]; then
-    echo "$vols" | head -n 2 | tac
-  else
-    echo "$vols" | head -n 1
+  if [[ "$*" =~ "-v" ]]; then
+    echo "master  $(amixer -c 1 -M sget Master Playback)"
+    echo "headphn $(amixer -c 1 -M sget Headphone Playback)"
+    echo "speaker $(amixer -c 1 -M sget Speaker Playback)"
+    echo
   fi
+  if [[ $is_headphone -eq 0 ]]; then
+    stuff="$(amixer -c 1 -M sget Headphone Playback)"
+  else
+    stuff="$(amixer -c 1 -M sget Speaker Playback)"
+  fi
+  echo "$stuff" | egrep -o '[0-9]+%' -m 1
+  if amixer -c 1 sget Master Playback | fgrep -q '[off]'; then
+    echo "Mute"
+  fi
+  echo "$stuff"
 }
 
-notify() {
- it=$(get)
- if [[ "$it" =~ M ]]; then
-  volnoti-show -m || true
- else
-  volnoti-show "$it" || true
- fi
-}
+control=''
+if [[ $is_headphone -eq 0 ]]; then
+  control='Headphone'
+else
+  control='Speaker'
+fi
 
 if [[ "$@" =~ up ]]; then
-  pactl set-sink-volume @DEFAULT_SINK@ '+3%'
-  notify
+  amixer -c 1 -M set $control Playback 2%+
 elif [[ "$@" =~ down ]]; then
-  pactl set-sink-volume @DEFAULT_SINK@ '-3%'
-  notify
+  amixer -c 1 -M set $control Playback 2%-
 elif [[ "$@" =~ mute ]]; then
-  pactl set-sink-mute @DEFAULT_SINK@ toggle
-  notify
+  amixer -c 1 -M set Master Playback toggle
 elif [[ "$@" =~ zero ]]; then
-  pactl set-sink-volume @DEFAULT_SINK@ '0%'
-  pactl set-sink-mute @DEFAULT_SINK@ off
-  notify
-elif [[ "$@" =~ notify ]]; then
-  notify
+  amixer -c 1 -M set $control Playback 0%
+  amixer -c 1 -M set Master Playback unmute
+  amixer -c 1 -M set Master Playback 100%
 else
-  get
+  get "$@"
 fi
 
 exit 0

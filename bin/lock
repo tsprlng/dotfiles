@@ -1,3 +1,17 @@
 #!/bin/bash -e
 
-sleep 1; i3lock -d -I5 -c 005500 -f -e
+revert(){
+	xset -dpms
+}
+trap revert EXIT
+
+image="$(grep -o "'.*'" ~/.fehbg | tr -d \')"
+if [[ -z "$image" ]]; then
+	args=(-c 005500)
+else
+	args=('-t' '-i' "$image")
+fi
+
+xset +dpms dpms 3 3 3
+sleep 0.3
+i3lock -f -e -n "${args[@]}"
