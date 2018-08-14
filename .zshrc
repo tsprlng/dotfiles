@@ -129,7 +129,7 @@ ssh_bootstrap() {
 
 ssh-add() {
 	if [ -z "$*" ]; then
-		ssh-add -c ~/.ssh/id_ed25519 ~/.ssh/velo_id_ed25519
+		ssh-add -c ~/.ssh/id_ed25519 ~/.ssh/velo_id_ed25519 ~/.ssh/id_2fa
 	else
 		command ssh-add "$@"
 	fi

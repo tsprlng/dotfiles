@@ -1,13 +1,104 @@
 #!/usr/bin/ruby
 
-key=ARGV[0]
-xargs=ARGV[1..-1].join ' '
+# At least some of this will be needed:
+# Your distro's oathtool / oath-toolkit (for liboath)
+# gem install base32 (for reading the typical format of OTP key material)
+# gem install net-ssh (for using a fixed-string ssh-agent signature as an encryption key)
+# gem install ed25519 (for signing with ed25519 SSH keys)
+# gem install bcrypt_pbkdf (also for ed25519 SSH keys)
 
-File.read("/home/tds/.2fa").each_line do |line|
-	if /.*#{key}.*:\s*(.*)$/ =~ line
-		args = $1
-		puts `oathtool --totp #{args} #{xargs} | xclip -f`
-		exit
+# ?why did i think this was needed before?: gem install rbnacl --version '<5'
+
+require 'fiddle'
+require 'net/ssh'
+require 'openssl'
+require 'digest/sha2'
+require 'base32'
+require 'time'
+AES = 'AES-256-CBC'
+
+PublicKeyFile = "/home/tds/.ssh/id_2fa.pub"
+
+QuietMode = ARGV.delete("-q") ? true : false
+
+liboath = Fiddle.dlopen('/usr/lib/liboath.so.0')
+$totp_gen = Fiddle::Function.new(
+	liboath['oath_totp_generate'],
+	[Fiddle::TYPE_VOIDP, Fiddle::TYPE_SIZE_T, Fiddle::TYPE_INT, Fiddle::TYPE_INT, Fiddle::TYPE_INT, Fiddle::TYPE_INT, Fiddle::TYPE_VOIDP],
+	Fiddle::TYPE_INT
+)
+
+def totp(b32_secret)
+	secret = Base32.decode(b32_secret.strip.gsub(/[^0-9a-zA-Z]/,'').upcase)
+	buff = "00000000"
+	$totp_gen.call(secret, secret.length, Time.now.utc.to_i, 30, 0, 6, buff)
+	buff[0..6]
+end
+
+def load_secret
+	pubkey = Net::SSH::KeyFactory.load_public_key(PublicKeyFile)
+	agent = Net::SSH::Authentication::Agent.connect
+	key = agent.sign(pubkey, "second factor")
+	digest = Digest::SHA256.new
+	digest.update key
+	$secret = digest.digest
+end
+def encrypt(thing)
+	load_secret unless $secret
+	aes = OpenSSL::Cipher.new(AES)
+	aes.encrypt
+	aes.key = $secret
+	enc = aes.update(thing)
+	enc << aes.final
+	[enc].pack('m0')
+end
+def decrypt(thing)
+	load_secret unless $secret
+	aes = OpenSSL::Cipher.new(AES)
+	aes.decrypt
+	aes.key = $secret
+	dec = aes.update(thing.unpack('m')[0])
+	dec << aes.final
+	dec
+end
+
+if ARGV[0]=='--export'
+	ARGV.shift
+	Export = true
+elsif ARGV[0]=='--import'
+	name = ARGV[1] or raise "Please provide a name"
+	code = encrypt($stdin.read.strip)
+	File.open("/home/tds/.2fa.crypt", 'a') do |f|
+		f.write("#{name} : #{code}\n")
+	end
+	exit
+else
+	Export = false
+end
+
+key=ARGV[0]
+
+File.read("/home/tds/.2fa.crypt").each_line do |line|
+	if /.*\b#{key}\b.*:\s*(.*)$/ =~ line or not key
+		line.strip!
+		secret = decrypt(line.split(' : ')[-1])
+		label = line.split(/:| /)[0]
+		if Export
+			puts label
+			qr = "otpauth://totp/#{label}:key?secret=#{secret}"
+			puts `qrcode-terminal '#{qr}'`
+		else
+			if key
+				otp = totp(secret) if key
+				open('|xclip', 'w'){|c| c.puts otp } unless QuietMode
+					# TODO why does this block if run in the background?
+				puts otp
+			else
+				puts label + ' ' + (totp(secret) rescue '?!')
+			end
+			#$stdout.flush
+		end
+		exit if key
 	end
 end
-exit 1
+exit 1 if key
