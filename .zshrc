@@ -47,10 +47,12 @@ zsh_theme_git() {
 	fi
 }
 
-PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
+[[ -z $ZSH_ONELINE ]] && PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
 )
 $(zsh_theme_ssh)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd)$(zsh_theme_git)$(zsh_theme_rvm_venv)
 %{%(!.$fg_bold[red].$fg_bold[yellow])%}$(zsh_theme_date)%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}>: %{$reset_color%}'
+
+[[ -n $ZSH_ONELINE ]] && PROMPT='%B>:%b '
 
 accept-line() {
 	if [[ -z "$BUFFER" ]]; then
@@ -173,5 +175,18 @@ if [[ -x /usr/local/bin/aws_zsh_completer.sh ]]; then
 	source /usr/local/bin/aws_zsh_completer.sh
 fi
 
-dotfiles status -s
+if [[ -n $ZSH_ONELINE ]]; then
+	zle-line-init() {
+		[[ -n $ZSH_DONE ]] && exit
+		BUFFER=' &!'
+	}
+	accept-line() {
+		ZSH_DONE='yep'
+		zle .$WIDGET
+	}
+	zle -N zle-line-init
+	zle -N accept-line
+fi
+
+[[ -z $ZSH_ONELINE ]] && dotfiles status -s
 hash -d vg=~/Documents/velo/git

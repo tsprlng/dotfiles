@@ -2,6 +2,12 @@ set $mod Mod4
 
 for_window [title=".*[Ss]lack.*[Cc]all.*"] floating enable
 
+for_window [window_role="topterm"] floating enable
+for_window [window_role="topterm"] sticky enable
+for_window [window_role="topterm"] move position 0 0
+for_window [window_role="topterm"] resize set 100 ppt 200 px
+for_window [window_role="topterm"] border pixel 9
+
 #for_window [window_role="calendar"] border pixel 9
 for_window [window_role="calendar"] floating enable
 for_window [window_role="calendar"] sticky enable
@@ -25,8 +31,8 @@ exec periodic_redshift
 exec sleep 2; exec parcellite
 exec sleep 2; exec systemd-inhibit --what=handle-lid-switch --why 'h8 sleeping' sleep 1000d
 
-# note commented out focus mode_toggle to do this
-bindsym $mod+space exec dmenu_run
+bindsym $mod+space exec ~/bin/dmenu_run
+bindsym $mod+Mod1+space exec terminator --geometry='560x200' -bm --title='Topterm' --role=topterm -e 'ZSH_ONELINE=yes zsh'
 
 bindsym Print exec shutter
 
@@ -119,7 +125,7 @@ bindsym $mod+period layout toggle split
 bindsym $mod+Shift+space floating toggle
 
 # change focus between tiling / floating windows
-#bindsym $mod+space focus mode_toggle
+bindsym $mod+Shift+Mod1+space focus mode_toggle
 
 # focus the parent container
 bindsym $mod+a focus parent
