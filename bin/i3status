@@ -93,19 +93,50 @@ def battery_summary
 	#run_out.strftime '%H:%M'
 end
 
+def timer
+	return nil unless File.exist? '/dev/shm/tom-time'
+	stuff = { name: :timer, color: "#aa8800" }
+	target_time = DateTime.strptime(File::read('/dev/shm/tom-time'))
+	distance = target_time - DateTime.now
+	if distance < 0
+		stuff['full_text'] = target_time.iso8601
+		stuff['color'] = '#330000'
+		stuff['background'] = '#ff0000'
+		stuff['border'] = '#ff0000'
+		stuff['urgent'] = true
+	else
+		if (distance*24*60*60).to_i <= 60
+			stuff['full_text'] = "#{(distance*24*60*60).to_i}s"
+		else
+			stuff['full_text'] = "#{(distance*24*60).to_i}m"
+		end
+	end
+	stuff
+end
+
+def ssh_agent
+	keys = `ssh-add -l`
+	return nil if $?.exitstatus == 2
+	count = keys.lines.length if $?.exitstatus == 0
+	color = $?.exitstatus == 0 ? '#22dd66' : '#dd4422'
+	instance = $?.exitstatus == 0 ? 'keyed' : 'unkeyed'
+	{ name: :ssh_agent, instance: instance, color: color, full_text: "#{count}🔑" }
+end
+
 def get_output_string
 	stuff = []
 	stuff << { name: :disk_info, instance: '/', color: '#666666', full_text: disk_space }
 	stuff << { name: :mem_info, color: '#666666', full_text: memory_space }
 	stuff.last.merge!({separator: true})
 
-	if `rfkill list bluetooth`.include? 'yes'
-		stuff << ({name: :bluetooth, instance: :disabled, color: '#444444', full_text: 'BT'})
-	else
+	$stderr.puts `bluetoothctl <<< 'show 5C:E0:C5:02:6B:B4' | grep Powered`
+	if `bluetoothctl <<< 'show 5C:E0:C5:02:6B:B4' | grep Powered`.include? 'yes'
 		stuff << ({name: :bluetooth, instance: :enabled, color: '#6677cc', full_text: 'BT'})
+	else
+		stuff << ({name: :bluetooth, instance: :disabled, color: '#444444', full_text: 'BT'})
 	end
 	stuff << ( { name: :ethernet, instance: 'tun0', color: '#ffff00', full_text: "VPN: #{eth_pretty 'tun0'}" } rescue { name: :ethernet, instance: 'tun0', color: '#444444', full_text: 'VPN: down' } )
-	stuff << ( { name: :ethernet, instance: 'enp0s25', color: '#6677cc', full_text: "E: #{eth_pretty 'enp0s25'}" } rescue { name: :ethernet, instance: 'enp0s25', color: '#880000', full_text: 'E: down' } )
+	stuff << ( { name: :ethernet, instance: 'enp0s25', color: '#6677cc', full_text: "E: #{eth_pretty 'enp0s25'}" } rescue { name: :ethernet, instance: 'enp0s25', color: '#444444', full_text: 'E: down' } )
 	begin
 		wlan = wlan_pretty 'wlp3s0'
 		stuff <<  { name: :wireless, instance: 'wlp3s0', color: (wlan=='off' ? '#444444' : '#6677cc'), full_text: "W: #{wlan}" }
@@ -114,6 +145,7 @@ def get_output_string
 	end
 	stuff.last.merge!({separator: true})
 
+	stuff << { name: :ac, instance: 'ac', color: File.read('/sys/class/power_supply/AC/online').to_i == 1 ? '#00ff00' : '#880000', full_text: 'ac'||'🗲' }
 	stuff << battery_stuff('BAT0', 'int')
 	stuff << battery_stuff('BAT1', 'ext')
 	stuff << {name: :battery_summary, full_text: battery_summary } rescue nil
@@ -124,16 +156,20 @@ def get_output_string
 
 	stuff << { name: :brightness, full_text: "☼ #{get_brightness_percent}%" }
 	volicon = case
+		when (@cached_volume_percent.include? 'Dock') then '📺' + ((@cached_volume_percent.include? 'Mute') ? "\u0338" : '')
 		when (@cached_volume_percent.include? 'Headphone') then '🎧' + ((@cached_volume_percent.include? 'Mute') ? "\u0338" : '')
 		when @cached_volume_percent.to_i > 50 then '🔊'
 		when @cached_volume_percent.to_i > 0 && !(@cached_volume_percent.include? 'Mute') then '🔉'
 		else '🔇'
 	end
 	stuff << { name: :volume, full_text: "#{volicon} #{@cached_volume_percent.split("\n")[0]}" }
+	#stuff << { name: :volume, full_text: "#{volicon} #{@cached_volume_percent.split("\n")[0]} #{@cached_dev_changes}" }
 	stuff.last.merge!({separator: true})
 	stuff.last.merge!({color: '#dd8800'}) if @cached_volume_percent.include? 'Mute'
 
 	stuff << { name: :tztime, instance: :local, full_text: date_pretty }
+	stuff << timer if timer
+	stuff << ssh_agent if ssh_agent
 	stuff << { name: :caps, full_text: "CAPS", background: '#aa0000' } if @capslock
 
 	stuff.each do |item|
@@ -148,6 +184,7 @@ def get_output_string
 	return JSON.generate(stuff)
 end
 
+@cached_dev_changes = 0
 @cached_volume_percent = get_volume_percent
 @capslock = false
 
@@ -170,15 +207,16 @@ loop do
 	begin
 		click = $stdin.gets
 		click = click[1..-1] if click.start_with? ','
+		$stderr.puts click
 		click = JSON.parse(click)
 
 		if click['button'] == 3 && (click['name'] == 'wireless' || click['name'] == 'ethernet')
 			p = Process.spawn("echo #{get_ip click['instance']} | xclip -selection clipboard || true")
 			Process.detach(p)
 		elsif click['button'] == 1 && click['name'] == 'bluetooth'
-			$stderr.puts("/usr/sbin/rfkill #{click['instance']!='enabled' ? 'un' : ''}block bluetooth")
-			p = Process.spawn("/usr/sbin/rfkill #{click['instance']!='enabled' ? 'un' : ''}block bluetooth")
-			Process.detach(p)
+			$stderr.puts "bluetoothctl <<< 'power #{click['instance']!='enabled' ? 'on' : 'off'}' | cat"
+			p = `bluetoothctl <<< 'power #{click['instance']!='enabled' ? 'on' : 'off'}' | cat`
+			$stderr.puts p
 		elsif click['button'] == 1 && click['name'] == 'tztime'
 			p = Process.spawn(%q{terminator --geometry='560x440' -bm --title='Calendar' --role=calendar -e 'bash -c "echo -ne \"\\033]0;Calendar\\007\"; cal -n 9 -S; read -n 1"'})
 			Process.detach(p)
@@ -188,15 +226,15 @@ loop do
 			Process.detach(p)
 		elsif click['name'] == 'volume'
 			if click['button'] == 4
-				`volume up`
+				`~/bin/volume up`
 			elsif click['button'] == 5
-				`volume down`
+				`~/bin/volume down`
 			end
 		elsif click['name'] == 'brightness'
 			if click['button'] == 4
-				`brightness up`
+				`~/bin/brightness up`
 			elsif click['button'] == 5
-				`brightness down`
+				`~/bin/brightness down`
 			end
 		end
 	rescue
@@ -208,8 +246,23 @@ Signal.trap 'USR1' do
 	redraw.run
 end
 
+$alsa_dev_pid = nil
+at_exit { $alsa_dev_pid && Process.kill('TERM', $alsa_dev_pid) }
+receive_alsa_dev_events = Thread.new do
+loop do
+	IO.popen "inotifywait -m /dev/snd -e create -e delete" do |io|
+		$alsa_dev_pid = io.pid
+		Process.detach($alsa_dev_pid)
+		io.each do |line|
+			@cached_dev_changes += 1
+			redraw.run
+		end
+	end
+end
+end
+
 $alsa_pid = nil
-at_exit { $alsa_pid && Process.kill($alsa_pid) }
+at_exit { $alsa_pid && Process.kill('TERM', $alsa_pid) }
 receive_alsa_events = Thread.new do
 loop do
 	IO.popen "stdbuf -oL alsactl monitor" do |io|
@@ -224,7 +277,7 @@ end
 end
 
 $xkb_pid = nil
-at_exit { $xkb_pid && Process.kill($xkb_pid) }
+at_exit { $xkb_pid && Process.kill('TERM', $xkb_pid) }
 receive_xkb_events = Thread.new do
 loop do
 	IO.popen "stdbuf -oL xkbevd" do |io|
@@ -245,6 +298,7 @@ end
 end
 
 receive_alsa_events.join
+receive_alsa_dev_events.join
 receive_xkb_events.join
 receive_click_events.join
 redraw.join
