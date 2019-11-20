@@ -139,6 +139,7 @@ alias tiga='tig --all'
 alias tigc='git tigc'
 alias gka='gitk --all&'
 
+export PATH="$HOME"/bin:"$PATH"
 export VISUAL=vi
 export EDITOR=vi
 
