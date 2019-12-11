@@ -5,6 +5,11 @@ set noexpandtab
 set shiftwidth=3
 set tabstop=3
 
+" PEP 8 is wrong about tabs
+let g:python_recommended_style = 0
+
+" THERE IS NO SUCH FUCKING THING AS RUBY RECOMMENDED STYLE
+let g:ruby_recommended_style = 0
 
 " No hideous auto-formatting
 set textwidth=0  " Urgh, fuck off with arbitrary line lengths
