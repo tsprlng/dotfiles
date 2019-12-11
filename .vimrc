@@ -18,6 +18,12 @@ set formatoptions=  " Basically like 'paste' is always set -- no auto-formatting
 
 set autoindent  " Except this: preserve current indentation on new lines
 
+"map <Space> <Leader>
+nnoremap <Space> <nop>
+let mapleader=" "
+
+"nnoremap <leader><Space> :w<CR>
+nnoremap <leader><CR> :w<CR>:silent lmake!<CR>
 
 " Disable annoying bullshit ex mode binding which I often accidentally trigger when trying to hit ':'
 nnoremap Q <nop>
@@ -31,6 +37,9 @@ nnoremap Y y$
 nnoremap <C-e> 3<C-e>
 nnoremap <C-y> 3<C-y>
 set scrolloff=5  " Always keep some visible surroundings surrounding the cursor line
+
+noremap <Up> gk
+noremap <Down> gj
 
 
 " Visual pleasantries
