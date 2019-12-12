@@ -1,0 +1,17 @@
+#!/usr/bin/zsh -e
+
+base="$1"
+new_branch="$2"
+
+if [[ -z "$base" ]]; then
+	>&2 echo "Usage: $0 <base-branch> [<new-branch>]"
+	exit 4
+fi
+
+normal_remote="$(git remote get-url origin)"
+remote="${normal_remote/git@github.com:/https:\/\/github.com/}"
+
+[[ -z "$new_branch" ]] && new_branch="$(git rev-parse --abbrev-ref HEAD)"
+
+#chromium "$remote/pull/new/$new_branch?base=$base"
+chromium "$remote/compare/$base...$new_branch?expand=1" &!
