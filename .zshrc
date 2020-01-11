@@ -15,9 +15,9 @@ zsh_theme_ssh() {
 	[ $SSH_CONNECTION ] && echo "%{$bg[yellow]%}%{$fg_bold[black]%}%M%{$reset_color%}:"
 }
 zsh_theme_rvm_venv() {
-	if [ -f $HOME/.rvm/bin/rvm-prompt ]; then
+	if [[ -n "$RUBY_VERSION" && -f $HOME/.rvm/bin/rvm-prompt ]]; then
 		local rvm_prompt=$($HOME/.rvm/bin/rvm-prompt ${ZSH_THEME_RVM_PROMPT_OPTIONS} 2>/dev/null)
-		[[ -n "$rvm_prompt" ]] && echo "%{$fg[grey]%} (${rvm_prompt})"
+		[[ -n "$rvm_prompt" ]] && echo " %K{125}%F{0}${rvm_prompt}%f%k"
 	fi
 	if [[ -n "$VIRTUAL_ENV" ]]; then
 		local components=(${(@s:/:)VIRTUAL_ENV})
@@ -195,3 +195,9 @@ fi
 
 [[ -z $ZSH_ONELINE ]] && dotfiles status -s
 hash -d vg=~/Documents/velo/git
+
+rvm(){
+	unset -f rvm
+	source ~/.rvm/scripts/rvm
+	[[ -z "$*" ]] || rvm "$@"
+}
