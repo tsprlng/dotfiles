@@ -201,3 +201,7 @@ rvm(){
 	source ~/.rvm/scripts/rvm
 	[[ -z "$*" ]] || rvm "$@"
 }
+
+vack(){
+	vi -q <(ack $@) +copen
+}
