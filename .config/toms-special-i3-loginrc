@@ -1,13 +1,16 @@
 #!/bin/bash
 
-setxkbmap -option -option caps:backspace -option shift:both_capslock -option numpad:mac
+setxkbmap -option -option caps:backspace -option shift:both_capslock -option numpad:mac dvorak
 
-mkdir -p $HOME/.xkb/keymap
-setxkbmap -print | sed -e '/xkb_symbols/s/"[[:space:]]/+local&/' > $HOME/.xkb/keymap/custom
-xkbcomp -w0 -I$HOME/.xkb/ -R$HOME/.xkb/ keymap/custom $DISPLAY
+thinkpad_kb=$(xinput | grep 'AT Translated Set' | egrep -o 'id=\S+' | egrep -o '[0-9]+') && (
+	echo setting laptop modifiers for $thinkpad_kb
+	mkdir -p $HOME/.xkb/keymap
+	setxkbmap -print | sed -e '/xkb_symbols/s/"[[:space:]]/+local&/' > $HOME/.xkb/keymap/custom
+	xkbcomp -i $thinkpad_kb -w0 -I$HOME/.xkb/ -R$HOME/.xkb/ keymap/custom
+	xkbcomp -i $thinkpad_kb .xkb/custom.xkm $DISPLAY
+)
 
-#xsetroot -bitmap Pictures/leave-it.xbm -bg maroon -fg black
-(xli -onroot Pictures/leave-it.png || xsetroot -solid darkgreen) >/dev/null 2>&1
+[[ -x ~/.fehbg ]] && ~/.fehbg
 
 synclient \
   TapButton1=0 TapButton2=0 \
