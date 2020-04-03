@@ -1,0 +1,101 @@
+#!/usr/bin/ruby
+
+# AWS CLI proxy that handles temporary authentication (assuming role with MFA)
+
+RealAwsCommand = '~/.local/bin/aws'  # normal aws cli binary to exec after auth
+RemainingSecsThreshold = 15*60  # minimum time that can be left on a token before renewing
+
+case ENV['AWS_CONFIG'] || $0
+when String
+	User = 'toms'
+	ApiSecretId = 'AKI_________________'  # The credentials to use as the user login to try to get the role from.
+	ApiSecret = 'RCoeu0gou09,g098oul0euf,u0u.,08gu,08gfff'  #   if nil, just let the configured ones from the normal `aws` tool be used.
+
+	TryTokenCommand = '~/bin/2fa -q aws'  # Command that may return the 6-digit TOTP token on this machine
+
+	MfaTokenArn = "arn:aws:iam::999999999999:mfa/#{User}"
+	RoleArn = "arn:aws:iam::#{ENV['AWS_ACCT'] || '999999999999'}:role/AdminAccessRole"
+end
+
+SessionFile = '~/.aws-session_' + RoleArn.gsub(/[\/:_]+/, '-')
+
+require 'json'
+require 'date'
+
+$faketime = nil  # trick to do multiple auto-logins within the same MFA interval; cheating by faking being in the next interval or two
+
+def tryLogIn
+	raise "Must specify user name" if User.nil? or User.empty?
+	ok = false
+	if TryTokenCommand
+		token = `#{$faketime ? "faketime -f +#{$faketime}s " : ''}#{TryTokenCommand}`.strip
+		ok = $?.success?
+	end
+	until ok and /^\d{6}$/ =~ token
+		$stderr.print "Enter TOTP token: "
+		token = $stdin.gets.strip
+		ok = true
+	end
+
+	if ApiSecretId and ApiSecret
+		ENV['AWS_ACCESS_KEY_ID'] = ApiSecretId
+		ENV['AWS_SECRET_ACCESS_KEY'] = ApiSecret
+		ENV.delete('AWS_SESSION_TOKEN')
+	end
+
+	`#{RealAwsCommand} sts assume-role --role-arn '#{RoleArn}' --role-session-name '#{User}-cli' --serial-number '#{MfaTokenArn}' --token-code '#{token}'`
+end
+
+def logIn
+	tries = 0
+	awsResponse = "No response from assume-role call:\\"
+	begin
+		tries += 1
+		awsResponse = tryLogIn
+		parsed = JSON.load(awsResponse)['Credentials']
+		File.open(File.expand_path(SessionFile), 'w') do |sessionFile|
+			sessionFile.chmod(0600)
+			sessionFile.write(JSON.dump(parsed))
+		end
+		return parsed
+	rescue
+		$stderr.puts awsResponse unless awsResponse.nil? or awsResponse.empty?
+		$stderr.puts "Retrying login..."
+		retry unless tries >= 3
+		raise $!
+	end
+end
+
+Dir.glob('.aws-session_*').each do |f|
+	if (File.stat(f).mtime.utc.to_i / 30) == (Time.now.utc.to_i / 30)
+		# already logged in during this 30 second interval!
+		# we have to fake believing we're in the future for it to let us in again (e.g. to a different acct or role)
+		$faketime = ($faketime || 0) + 30
+	end
+end
+
+begin
+	creds = JSON.load(File.read(File.expand_path(SessionFile)))
+	expires = DateTime.strptime(creds['Expiration'])
+	must_expire_after = DateTime.now + Rational(RemainingSecsThreshold, 60*60*24)
+	raise "Too Late" unless expires > must_expire_after
+rescue
+	creds = logIn
+	raise "Credentials weren't returned" unless creds
+end
+
+# TODO what are the old-fashioned variables?; set them too
+
+ENV['AWS_ACCESS_KEY_ID'] = creds['AccessKeyId'] || raise
+ENV['AWS_SECRET_ACCESS_KEY'] = creds['SecretAccessKey'] || raise
+ENV['AWS_SESSION_TOKEN'] = creds['SessionToken'] || raise
+expires = DateTime.strptime(creds['Expiration'])
+
+if ARGV.empty?
+	remaining_secs = ((expires - DateTime.now) * 24 * 60 * 60).to_i
+	puts "Logged in. Session expires in #{remaining_secs/60}m#{remaining_secs%60}s."
+elsif ['-','--'].include? ARGV[0]
+	exec(*ARGV[1..-1])
+else
+	exec(File.expand_path(RealAwsCommand), *ARGV)
+end
