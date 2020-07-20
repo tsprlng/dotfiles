@@ -1,1 +1,3 @@
-i3
+#!/bin/sh
+[ -f ~/.xprofile ] && . ~/.xprofile
+exec i3

@@ -207,5 +207,5 @@ vack(){
 }
 
 if [[ "$TTY" == /dev/tty1 ]]; then
-	startx /usr/bin/i3
+	startx
 fi
