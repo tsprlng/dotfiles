@@ -21,7 +21,7 @@ bindsym $mod+Shift+Pause exec --no-startup-id ~/bin/lock
 bindsym XF86PowerOff exec --no-startup-id ~/bin/lock
 
 bindsym XF86LaunchA exec toggle-trackpad
-bindsym XF86Display exec displays --auto
+bindsym XF86Tools exec ~/bin/displays --auto
 
 exec_always ~/.config/toms-special-i3-loginrc
 

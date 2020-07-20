@@ -1,6 +1,6 @@
 #!/usr/bin/zsh
 
-device="/sys/class/backlight/intel_backlight"
+device="/sys/class/backlight/amdgpu_bl0"
 curr="$(< "$device/brightness")"
 max="$(< "$device/max_brightness")"
 

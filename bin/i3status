@@ -4,8 +4,8 @@ require 'date'
 require 'json'
 
 def get_brightness_percent
-	curr = IO.read '/sys/class/backlight/intel_backlight/actual_brightness'
-	max = IO.read '/sys/class/backlight/intel_backlight/max_brightness'
+	curr = IO.read '/sys/class/backlight/amdgpu_bl0/actual_brightness'
+	max = IO.read '/sys/class/backlight/amdgpu_bl0/max_brightness'
 	(curr.to_f * 100/ max.to_f).round
 end
 
