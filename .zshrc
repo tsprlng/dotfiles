@@ -205,3 +205,7 @@ rvm(){
 vack(){
 	vi -q <(ack $@) +copen
 }
+
+if [[ "$TTY" == /dev/tty1 ]]; then
+	startx /usr/bin/i3
+fi
