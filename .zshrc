@@ -172,9 +172,9 @@ export EDITOR=vi
 
 autoload -z edit-command-line && zle -N edit-command-line && bindkey '^X^E' edit-command-line
 
-export PATH="/home/tds/.pyenv/bin:$PATH"
+export PATH="/home/tds/bin:$PATH"
 eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+#eval "$(pyenv virtualenv-init -)"
 
 if [[ -x /usr/local/bin/aws_zsh_completer.sh ]]; then
 	source /usr/local/bin/aws_zsh_completer.sh
