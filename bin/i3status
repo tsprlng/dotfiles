@@ -5,7 +5,7 @@ require 'json'
 
 def get_brightness_percent
 	curr = IO.read '/sys/class/backlight/amdgpu_bl0/actual_brightness'
-	max = IO.read '/sys/class/backlight/amdgpu_bl0/max_brightness'
+	max = 65535  # grrr
 	(curr.to_f * 100/ max.to_f).round
 end
 
@@ -58,7 +58,7 @@ def memory_space
 	"#{(mem_avail / 1024 / 1024).round(1)}G #{(swap_free / 1024 / 1024).round(1)}G"
 end
 
-def battery_stuff(whichbat, label)
+def battery_stuff(whichbat, label=nil)
 	begin
 		designed_cap = IO.read("/sys/class/power_supply/#{whichbat}/energy_full_design").chomp.to_f
 		actual_cap = IO.read("/sys/class/power_supply/#{whichbat}/energy_full").chomp.to_f
@@ -74,9 +74,9 @@ def battery_stuff(whichbat, label)
 			else '#999999'
 		end
 
-		{ name: :battery, instance: whichbat, color: color, full_text: "#{label} #{percent}" }
+		{ name: :battery, instance: whichbat, color: color, full_text: "#{label ? (label + ' ') : ''}#{percent}" }
 	rescue
-		{ name: :battery, instance: whichbat, color: '#ff0000', full_text: "#{label} X" }
+		{ name: :battery, instance: whichbat, color: '#ff0000', full_text: "#{label ? (label + ' ') : ''}X" }
 	end
 end
 
@@ -136,17 +136,17 @@ def get_output_string
 	#	stuff << ({name: :bluetooth, instance: :disabled, color: '#444444', full_text: 'BT'})
 	#end
 	stuff << ( { name: :ethernet, instance: 'tun0', color: '#ffff00', full_text: "VPN: #{eth_pretty 'tun0'}" } rescue { name: :ethernet, instance: 'tun0', color: '#444444', full_text: 'VPN: down' } )
-	stuff << ( { name: :ethernet, instance: 'enp0s25', color: '#6677cc', full_text: "E: #{eth_pretty 'enp0s25'}" } rescue { name: :ethernet, instance: 'enp0s25', color: '#444444', full_text: 'E: down' } )
+	stuff << ( { name: :ethernet, instance: 'enp3s0f0', color: '#6677cc', full_text: "E: #{eth_pretty 'enp3s0f0'}" } rescue { name: :ethernet, instance: 'enp3s0f0', color: '#444444', full_text: 'E: down' } )
 	begin
-		wlan = wlan_pretty 'wlp3s0'
-		stuff <<  { name: :wireless, instance: 'wlp3s0', color: (wlan=='off' ? '#444444' : '#6677cc'), full_text: "W: #{wlan}" }
+		wlan = wlan_pretty 'wlp1s0'
+		stuff <<  { name: :wireless, instance: 'wlp1s0', color: (wlan=='off' ? '#444444' : '#6677cc'), full_text: "W: #{wlan}" }
 	rescue
 		stuff << { name: :wireless, instance: 'wlp3s0', color: '#880000', full_text: 'W: down' }
 	end
 	stuff.last.merge!({separator: true})
 
 	stuff << { name: :ac, instance: 'ac', color: File.read('/sys/class/power_supply/AC/online').to_i == 1 ? '#00ff00' : '#880000', full_text: 'ac'||'🗲' }
-	stuff << battery_stuff('BAT0', 'int')
+	stuff << battery_stuff('BAT0')
 	stuff << {name: :battery_summary, full_text: battery_summary } rescue nil
 	stuff.last.merge!({separator: true})
 
