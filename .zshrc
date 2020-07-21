@@ -32,6 +32,9 @@ zsh_theme_rvm_venv() {
 	fi
 }
 zsh_theme_ssh_agent() {
+	if [[ -n $ZSH_SHOW_HIST_N ]]; then
+		return 0
+	fi
 	/usr/bin/ssh-add -l >/dev/null 2>&1; local state=$?
 	((( $state == 1 )) && echo -n " %{$fg[red]%}🔑") || ((( $state == 0 )) && echo -n " %{$fg[green]%}🔑")
 }
@@ -52,11 +55,18 @@ zsh_theme_git() {
 		fi
 	fi
 }
+zsh_theme_prompt() {
+	if [[ -n $ZSH_SHOW_HIST_N ]]; then
+		echo -n '%!:'
+	else
+		echo -n '>:'
+	fi
+}
 
 [[ -z $ZSH_ONELINE ]] && PROMPT='%{%(!.$fg[cyan].$fg[red])%}%(?..    %B(%?%)---^%b
 )
 $(zsh_theme_ssh)%{%(!.$fg_bold[red].$fg_bold[cyan])%}$(zsh_theme_pwd)$(zsh_theme_git)$(zsh_theme_rvm_venv)
-%{%(!.$fg_bold[red].$fg_bold[yellow])%}$(zsh_theme_date)%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}>: %{$reset_color%}'
+%{%(!.$fg_bold[red].$fg_bold[yellow])%}$(zsh_theme_date)%b$(zsh_theme_ssh_agent) %{$fg_bold[yellow]%}$(zsh_theme_prompt) %{$reset_color%}'
 
 [[ -n $ZSH_ONELINE ]] && PROMPT='%B>:%b '
 
@@ -67,7 +77,9 @@ accept-line() {
 	fi
 	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then local restore=yes; fi
 	ZSH_SKIP_GIT_STATUS=yes
+	ZSH_SHOW_HIST_N=y
 	zle reset-prompt
+	unset ZSH_SHOW_HIST_N
 	zle .$WIDGET
 	if [[ -n "$restore" ]]; then unset ZSH_SKIP_GIT_STATUS; fi
 }
