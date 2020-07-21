@@ -4,38 +4,56 @@ device="/sys/class/backlight/amdgpu_bl0"
 curr="$(< "$device/brightness")"
 max="$(< "$device/max_brightness")"
 
-step=30
-if (( $curr * 100 / $max < 8 )); then
-	step=3
+restore_file=~/.config/last-brightness
+adjust_file=~/.config/pref-brightness
+
+step=10
+if (( $curr * 100 / $max < 11 )); then
+	step=1
 fi
 
 get() {
-  echo "$curr / $max"
-  echo "$(( $curr * 100 / $max ))"
+	echo "$curr / $max"
+	echo "$(( $curr * 100 / $max ))"
 }
 
 notify() {
-  pkill -USR1 -o -f ~/bin/i3status
+	pkill -USR1 -o -f ~/bin/i3status
 }
 
-if [[ "$@" =~ up ]]; then
-  (( $step + $curr > $max )) && step="$(( $max - $curr ))"
-  echo "$(( $curr + step ))" > "$device/brightness"
-  notify
+if [[ -f "$restore_file" ]]; then
+	xset -dpms
+	cat "$restore_file" > "$device/brightness"
+	rm "$restore_file"
+	notify
+elif [[ "$@" =~ up ]]; then
+	(( $step + $curr > $max )) && step="$(( $max - $curr ))"
+	echo "$(( $curr + step ))" > "$device/brightness"
+	notify
 elif [[ "$@" =~ down ]]; then
-  (( $step > $curr )) && step=$curr
-  echo "$(( $curr - step ))" > "$device/brightness"
-  notify
+	(( $step > $curr )) && step=$curr
+	echo "$(( $curr - step ))" > "$device/brightness"
+	notify
 elif [[ "$@" =~ max ]]; then
-  echo "$max" > "$device/brightness"
-  notify
+	if [[ -f "$adjust_file" && -z $(find "$adjust_file" -mmin +1) ]]; then
+		cat "$adjust_file" > "$device/brightness"
+		rm "$adjust_file"
+	else
+		echo "$curr" > "$adjust_file"
+		echo "$max" > "$device/brightness"
+	fi
+	notify
 elif [[ "$@" =~ min ]]; then
-  zselect -t 80
-  xset dpms force off
+	echo "$curr" > "$restore_file"
+	echo 0 > "$device/brightness"
+	xset +dpms
+	xset dpms 1 1 1
+	zselect -t 80
+	xset dpms force off
 elif [[ "$@" =~ notify ]]; then
-  notify
+	notify
 else
-  get
+	get
 fi
 
 exit 0
