@@ -152,7 +152,8 @@ alias grep='grep --color=auto'
 alias mux='pgrep -lfa "ssh.*\[mux\]" -u "$USER"'
 alias gtypist='gtypist -wSbq'
 
-alias g='git'
+alias git='git-safe'  # prevent committing with -a after partial staging
+alias g='git-safe'
 alias gs='git status -s'
 alias gss='git status -s'
 alias gd='git diff -D'
