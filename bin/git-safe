@@ -4,9 +4,9 @@ ActualGit='/usr/bin/git'
 
 if ARGV.include? 'commit' and ARGV.any? {|a| a =~ /\A-[b-z]*a/ }
 	state = `git status -s`.lines
-	added = state.any?{|l| l=~ /\A[^\? ]/ }
-	unadded = state.any?{|l| l=~ /\A [^\? ]/ }
-	if added and unadded
+	added = state.any?{|l| l =~ /\A[^\? ]/ }
+	unadded = state.any?{|l| l =~ /\A.[^\? ]/ }
+	if added and unadded and not ENV['OK']
 		$stderr.puts "You silly idiot, you're using commit -a when you've already staged some stuff."
 		exit 4
 	end
