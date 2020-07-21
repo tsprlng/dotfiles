@@ -9,7 +9,13 @@ zsh_theme_date() {
 	date -u +'%-H.%M:%S'  # this is so that the shell shows UTC timestamps (like a good logger) even on a desktop which has "local time" adjustments
 }
 zsh_theme_pwd() {
-	pwd
+	base=$(git rev-parse --show-toplevel 2>/dev/null)
+	if [[ -z "$base" ]]; then
+		pwd
+	else
+		#echo -e "${base}\e[0;10m${${PWD}##${base}}"
+		echo -e "${base}%b%{$fg[white]%}${${PWD}##${base}}%B"
+	fi
 }
 zsh_theme_ssh() {
 	[ $SSH_CONNECTION ] && echo "%{$bg[yellow]%}%{$fg_bold[black]%}%M%{$reset_color%}:"
