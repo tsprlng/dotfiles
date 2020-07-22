@@ -1,0 +1,24 @@
+#!/bin/zsh -e
+
+repo_to_mangle="$1"
+[[ -e _worktree_init ]] && exit 1
+[[ -d "$repo_to_mangle" ]] || exit 1
+
+mkdir _worktree_init
+find "$repo_to_mangle" -maxdepth 1 -mindepth 1 \! -name _worktree_init -execdir mv '{}' "$PWD/_worktree_init/" \;
+mv _worktree_init "$repo_to_mangle/ORIGINAL"
+cd "$repo_to_mangle"
+
+git clone ORIGINAL init --separate-git-dir .bare
+branch_name="$(git -C ORIGINAL symbolic-ref HEAD)"
+branch_name="${branch_name#refs/heads/}"
+
+# copy remotes from original
+git -C ORIGINAL config -l --local | grep ^remote | while read c; do
+	git -C init config --local "${c%%=*}" "${c#*=}"
+done
+
+git -C init checkout --detach
+git -C .bare worktree add "../$branch_name" "$branch_name"
+
+rm -rf init

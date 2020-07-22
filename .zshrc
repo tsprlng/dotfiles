@@ -179,6 +179,9 @@ alias gppf='git push --force-with-lease'
 alias tiga='tig --all'
 alias tigc='git tigc'
 alias gka='gitk --all&'
+gcw() {
+	cd $(git checkout-worktree "$@")
+}
 
 alias ack-tf='ack **/*.tfstate.d(P:--ignore-dir:) --ignore-file "match:/.*\.tfstate/"'
 
