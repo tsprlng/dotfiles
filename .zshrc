@@ -98,11 +98,13 @@ stty stop undef start undef  # I find ^s "stop" behaviour very annoying
 bindkey '^[[3~' delete-char  # TODO why did this "just work" on Ubuntu?
 bindkey '^[3;5~' delete-char
 
-setopt histverify histreduceblanks histignorespace
+setopt histverify histreduceblanks histignorespace interactivecomments
 setopt histignorealldups sharehistory extendedhistory appendhistory incappendhistory
 HISTSIZE=10000
 SAVEHIST=10000
 HISTFILE=~/.zsh_history
+bindkey '^r' history-incremental-pattern-search-backward
+bindkey '^s' history-incremental-pattern-search-forward
 
 # Use modern completion system
 autoload -Uz compinit
