@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+
+def midi_device
+	p '/dev/midi5'
+end
+
+def sustainages
+	File.open(midi_device, 'rb') do |f|
+		while b = f.read(1).bytes do
+			if b[0]==0xb0 then
+				if f.read(1).bytes[0] == 0x40 then
+					yield f.read(1).bytes[0]
+				end
+			end
+		end
+	end
+end
+
+def mic_device
+	search_string = ARGV[0] || 'FHD_Capture'
+	it = `pactl list short sources`.lines
+		.reject{|l| l.include?(".monitor\t")}
+		.find{|l| l.include?(search_string)}
+		.split("\t")
+	name = it[1]
+	p name
+end
+
+$mic_device = mic_device
+
+def open_mic(open)
+	puts "#{open ? 'un' : ''}muting"
+	system "pactl set-source-mute #{$mic_device} #{open ? 0 : 1}"
+end
+
+$state = false  # mute at startup
+
+# await sustain-pedal changes from 'receive' thread, and trigger (un)mutes
+main = Thread.new do
+	loop do
+		if $state
+			open_mic true
+		else
+			# debounce, and delay to avoid cutting myself off with slightly laggy capture card
+			sleep 0.3  # will be interrupted if another state change comes in
+			if not $state
+				open_mic false
+			end
+		end
+		sleep
+	end
+end
+
+# watch MIDI device for sustain-pedal changes, and filter them
+receive = Thread.new do
+	sustainages do |s|
+		new_state = s > 64
+		if $state != new_state  # eliminate analogue value changes we don't care about
+			$state = new_state
+			main.run  # interrupt sleep
+		end
+	end
+end
+
+at_exit { open_mic(true) }  # unmute on shutdown
+
+begin
+	receive.join
+	main.join
+rescue Interrupt  # don't complain on ^C
+end
