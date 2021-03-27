@@ -22,6 +22,9 @@ bindsym XF86PowerOff exec --no-startup-id ~/bin/lock
 
 bindsym XF86LaunchA exec toggle-trackpad
 bindsym XF86Tools exec ~/bin/displays --auto
+bindsym $mod+b exec ~/bin/displays --auto
+bindsym $mod+Shift+b exec ddcutil --bus 10 setvcp 60 0x10
+bindsym $mod+Mod1+Shift+b exec ddcutil --bus 10 setvcp 60 0x0f
 
 exec_always ~/.config/toms-special-i3-loginrc
 
@@ -43,6 +46,8 @@ bindsym $mod+XF86AudioMute exec --no-startup-id ~/bin/volume zero
 
 bindsym XF86MonBrightnessUp exec --no-startup-id ~/bin/brightness up
 bindsym XF86MonBrightnessDown exec --no-startup-id ~/bin/brightness down
+bindsym Shift+XF86MonBrightnessUp exec --no-startup-id ~/bin/brightness2 + 3
+bindsym Shift+XF86MonBrightnessDown exec --no-startup-id ~/bin/brightness2 - 3
 bindsym $mod+XF86MonBrightnessUp exec --no-startup-id ~/bin/brightness max
 bindsym $mod+XF86MonBrightnessDown exec --no-startup-id ~/bin/brightness min
 

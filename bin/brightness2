@@ -1,0 +1,8 @@
+#!/bin/zsh -e
+exec >/dev/null 2>&1
+
+alias ddcutil='ddcutil --bus 10 --noverify --sleep-less --sleep-multiplier .1'
+
+exec 4<> ~/.brightness2lock
+flock 4
+ddcutil setvcp 10 "$@" || ddcutil setvcp 10 "$@"
