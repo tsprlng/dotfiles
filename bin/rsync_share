@@ -1,0 +1,50 @@
+#!/bin/zsh -e
+
+# Shares the current directory as an anonymous rsync share as the current user
+#
+# For this to work, the following needs doing first:
+#   $ sudo setcap cap_setgid=+ep $(which rsync)
+# Otherwise, rsync has to run as root!
+
+files_dir="$(pwd)"
+port=8873
+
+junk_dir="$(mktemp -d -t rsync_share.XXXXXX)"
+>&2 echo "$junk_dir" created
+finish() {
+	rm -rf $junk_dir
+	>&2 echo "$junk_dir" removed
+}
+trap finish EXIT
+
+config=$(<<EOFCONF
+uid = $(id -u)
+gid = $(id -g)
+use chroot = no
+numeric ids = yes
+max connections = 4
+
+log file = /dev/stderr
+lock file = $junk_dir/rsync.lock
+pid file = $junk_dir/rsync.pid
+
+port = $port
+
+[files]
+	path = $files_dir
+	comment = files
+	read only = yes
+EOFCONF
+)
+
+# cd $files_dir
+rsync --daemon --no-detach --config =(echo $config) &
+kill_it() {
+	kill %
+	sleep 0.5  # let remaining log crap trickle out before returning
+	exit
+}
+trap kill_it INT
+
+echo -e To fetch: '\n' '  ' rsync --port 8873 -P 'localhost::files/\*' .
+wait
