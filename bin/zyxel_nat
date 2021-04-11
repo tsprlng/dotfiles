@@ -1,0 +1,120 @@
+#!/usr/bin/env ruby
+
+require 'ruby_expect'
+require 'stringio'
+
+def get_password
+	$stderr.puts "Awaiting password..."
+	`pass zyxel-router-admin`.rstrip
+end
+
+RouterIp = '192.168.1.1'
+Username = 'admin'
+Password = get_password
+WanInterface = 'Plusnet'
+
+case ARGV
+when []
+	Action = :get
+else
+	raise "Args not supported yet"
+end
+
+$debug = false
+$logger = Logger.new($stderr)
+
+def bin_bool(bin)
+	case bin
+	when 0,'0','',nil
+		false
+	else
+		true
+	end
+end
+def na_null(str)
+	case str
+	when 'N/A','',nil
+		nil
+	else
+		str
+	end
+end
+def parse_nat_get_lines(lines)
+	_fields = {
+		index: ['Index', :to_i],
+		description: ['Description'],
+		enabled: ['Enable', Proc.new{|b| bin_bool(b)}],
+		remote_ip: ['Originating IP', Proc.new{|s| na_null(s)}],
+		local_ip: 'Server IP Address',
+		wan_interface: 'WAN Interface',
+		remote_start_port: ['Start Port', :to_i],
+		remote_end_port: ['End Port', :to_i],
+		local_start_port: ['Translation Start Port', :to_i],
+		local_end_port: ['Translation End Port', :to_i],
+		protocol: 'Protocol',  # TCP|UDP|ALL
+	}
+	field_matchers = []
+	_fields.each do |name, matcher|
+		col_label, mapping = matcher
+		start_pos = lines.first.index(col_label)
+		(field_matchers[-1][:end_pos] = start_pos-1) rescue nil
+		field_matchers << {name: name, start_pos: start_pos, end_pos: -1, mapping: mapping}
+	end
+	lines[1..-1].map{ |l|
+		data = {}
+		field_matchers.each do |matcher|
+			data[matcher[:name]] = (matcher[:mapping] || :itself).to_proc.call(l[matcher[:start_pos]..matcher[:end_pos]].rstrip)
+		end
+		data
+	}.to_a
+end
+def format_port_range(start, stop)
+	case
+	when start==stop
+		start.to_s
+	else
+		"[#{start}..#{stop}]"
+	end
+end
+def format_nat_line(data)
+	line = StringIO.new
+	data[:remote_ip].nil? or raise "remote_ip is set"
+	data[:wan_interface]==WanInterface or raise "wan_interface is weird"
+	line << data[:index].to_s.rjust(2) << ' '
+	line << (data[:enabled] ? '√' : 'X') << ' '
+	line << data[:description].ljust(32) << ' '
+	line << data[:protocol] << ' '
+	line << format_port_range(data[:remote_start_port], data[:remote_end_port])
+	line << ' -> ' << data[:local_ip] << ' '
+	line << format_port_range(data[:local_start_port], data[:local_end_port])
+	line.string
+end
+
+telnet = RubyExpect::Expect.spawn("telnet #{RouterIp}", $debug ? {debug: true, logger: $logger} : {})
+telnet.procedure do
+	each do
+		expect 'VMG1312-B10D login: ' do
+			send Username
+		end
+		expect 'Password: ' do
+			send Password
+		end
+	end
+
+	case Action
+	when :get
+		each do
+			expect 'ZySH> ' do
+				send 'cfg nat get'
+			end
+			expect 'ZySH> ' do
+				parse_nat_get_lines(before.lines[1..-2]).each do |nat|
+					puts format_nat_line(nat)
+				end
+			end
+		end
+	when :add  # TODO
+		# cfg nat add --Enable 1 --Description rsync --Interface Plusnet --ExternalPortStart 8872 --ExternalPortEnd 8872 --InternalPortStart 8872 --InternalPortEnd 8872 --InternalClient 192.168.1.33 --SetOriginatingIP 0 --Protocol TCP  # (or UDP or ALL)
+	end
+end
+#telnet.interact
