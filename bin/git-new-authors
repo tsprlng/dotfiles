@@ -1,0 +1,9 @@
+#!/bin/zsh -e
+
+mailmap="$(git config --get mailmap.file)"
+
+git log --all --pretty='%ce %cn%n%ae %an'  \
+	| sort | uniq \
+	| while read email name; do
+		fgrep -q "$email" "$mailmap" || echo "$name <$email>"
+	done

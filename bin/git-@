@@ -1,0 +1,2 @@
+#!/bin/zsh -e
+exec git rev-parse --short @
