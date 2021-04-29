@@ -1,0 +1,2 @@
+#!/bin/zsh -e
+exec dig +noall +answer +ttlunits "$@"
