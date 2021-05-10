@@ -1,7 +1,47 @@
 #!/usr/bin/env ruby
 
+require 'docopt'
 require 'ruby_expect'
 require 'stringio'
+
+Usage = <<USAGE
+Usage:
+  #{__FILE__}
+  #{__FILE__} add <description> (tcp|udp|all) <external-port> <internal-host> [internal-port]
+  #{__FILE__} del <external-port-or-description>
+  #{__FILE__} -h | --help
+USAGE
+
+class ActionType < Struct; end
+Show = ActionType.new(:_)
+Add = ActionType.new(:description, :protocol, :externalPort, :internalHost, :internalPort)
+Delete = ActionType.new(:searchString)
+
+begin
+	Args = Docopt::docopt(Usage)
+	case
+	when Args['add']
+		stuff = [
+			Args['<description>'],
+			Args['tcp'] ? :TCP : Args['udp'] ? :UDP : Args['all'] ? :ALL : raise,
+			Args['<external-port>'].to_i,
+			Args['<internal-host>'],
+			(Args['internal-port'] || Args['<external-port>']).to_i,
+		]
+		Action = Add.new(*stuff)
+	when Args['del']
+		Action = Delete.new(Args['<external-port-or-description>'])
+	else
+		Action = Show.new
+	end
+rescue
+	#puts $!
+	$stderr.puts Usage
+	exit 1
+end
+
+p Args if $debug
+p Action if $debug
 
 def get_password
 	$stderr.puts "Awaiting password..."
@@ -12,13 +52,6 @@ RouterIp = '192.168.1.1'
 Username = 'admin'
 Password = get_password
 WanInterface = 'Plusnet'
-
-case ARGV
-when []
-	Action = :get
-else
-	raise "Args not supported yet"
-end
 
 $debug = false
 $logger = Logger.new($stderr)
@@ -102,7 +135,7 @@ telnet.procedure do
 	end
 
 	case Action
-	when :get
+	when Show
 		each do
 			expect 'ZySH> ' do
 				send 'cfg nat get'
@@ -113,8 +146,47 @@ telnet.procedure do
 				end
 			end
 		end
-	when :add  # TODO
-		# cfg nat add --Enable 1 --Description rsync --Interface Plusnet --ExternalPortStart 8872 --ExternalPortEnd 8872 --InternalPortStart 8872 --InternalPortEnd 8872 --InternalClient 192.168.1.33 --SetOriginatingIP 0 --Protocol TCP  # (or UDP or ALL)
+	when Add
+		each do
+			expect 'ZySH> ' do
+				send [
+					"cfg nat add --Enable 1",
+					"--Description #{Action[:description]}",
+					"--Interface #{WanInterface}",
+					"--ExternalPortStart #{Action[:externalPort]} --ExternalPortEnd #{Action[:externalPort]}",
+					"--InternalPortStart #{Action[:internalPort]} --InternalPortEnd #{Action[:internalPort]}",
+					"--InternalClient #{Action[:internalHost]}",
+					"--SetOriginatingIP 0",
+					"--Protocol #{Action[:protocol]}",
+				].join(' ')
+			end
+			expect 'ZySH> ' do
+				puts before.lines
+			end
+		end
+	when Delete
+		each do
+			expect 'ZySH> ' do
+				send 'cfg nat get'
+			end
+			expect 'ZySH> ' do
+				index = nil
+				parse_nat_get_lines(before.lines[1..-2]).each do |nat|
+					if nat[:remote_start_port]==Action[:searchString].to_i or nat[:description]==Action[:searchString]
+						index = nat[:index]
+						break
+					end
+				end
+				unless index
+					$stderr.puts "Couldn't find \"#{Action[:searchString]}\" forward to delete"
+					exit 4
+				end
+				send "cfg nat delete --Index #{index}"
+			end
+			expect 'ZySH> ' do
+				puts before.lines
+			end
+		end
 	end
 end
 #telnet.interact
