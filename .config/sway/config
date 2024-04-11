@@ -11,7 +11,7 @@ input 1:1:AT_Translated_Set_2_keyboard xkb_file .xkb/keymap/custom
 
 input 1390:253:ELECOM_ELECOM_TrackBall_Mouse {
 	scroll_method on_button_down
-	scroll_button button9
+	scroll_button button2
 }
 
 output "Dell Inc. DELL U2715H GH85D71J07PS" transform 270
