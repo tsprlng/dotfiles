@@ -1,0 +1,6 @@
+evdev:input:b0003v056Ep00FD*
+ KEYBOARD_KEY_90001=btn_extra
+ KEYBOARD_KEY_90002=btn_left
+ KEYBOARD_KEY_90006=btn_right
+ KEYBOARD_KEY_90004=btn_stylus  # orig. back (btn_side)
+ KEYBOARD_KEY_90005=btn_stylus2  # orig. forward (btn_extra)
