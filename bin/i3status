@@ -3,9 +3,10 @@
 require 'date'
 require 'json'
 
+BacklightPath = '/sys/class/backlight/amdgpu_bl1'
 def get_brightness_percent
-	curr = IO.read '/sys/class/backlight/amdgpu_bl0/actual_brightness'
-	max = 65535  # grrr
+	curr = IO.read File.join(BacklightPath, 'actual_brightness') rescue 0
+	max = 255  # grrr
 	(curr.to_f * 100/ max.to_f).round
 end
 
@@ -18,9 +19,11 @@ def date_pretty
 	#return DateTime.now.new_offset(0).iso8601.sub '+00:00', 'Z'
 	case now.offset
 	when 0
-		now.strftime '%Y-%m-%d %H:%M:%S'
+		#now.strftime '%Y-%m-%d %H:%M:%S'
+		now.strftime '%Y-%m-%d'
 	else
-		now.strftime '%Y-%m-%d "%H:%M:%S"'
+		#now.strftime '%Y-%m-%d "%H:%M:%S"'
+		now.strftime '%Y-%m-%d'
 	end
 end
 
@@ -37,10 +40,10 @@ end
 
 def wlan_pretty(if_name)
 	return 'off' if `rfkill list wifi`.include? 'yes'
-	ip = get_ip(if_name)
+	ip = get_ip(if_name) rescue nil
 	wstat = IO.read '/proc/net/wireless'
-	stats = wstat.each_line .find {|l| l.match /^#{if_name}/} .split /\s+/
-	"#{stats[3].chomp('.')}dB #{stats[5..10].map(&:to_i).inject(:+)}! #{ip}"
+	stats = wstat.each_line .find {|l| l.match /^\s*#{if_name}/} .strip.split /\s+/
+	"#{stats[3].chomp('.')}dB #{stats[5..10].map(&:to_i).inject(:+)}!#{ip ? " #{ip}" : ''}"
 end
 
 def eth_pretty(*if_names)
@@ -125,6 +128,26 @@ def ssh_agent
 	{ name: :ssh_agent, instance: instance, color: color, full_text: "#{count}🔑" }
 end
 
+ResistorColors = [
+	'#333333',
+	'#7f4400',
+	'#aa3333',
+	'#d87100',
+	'#b6a800',
+	'#33aa33',
+	'#3366af',
+	'#aa44aa',
+	'#888890',
+	'#cccccc',
+]
+def ohm_clock
+	clok = []
+	DateTime.now.strftime('%H%M%S').chars.each_with_index do |digit,i|
+		clok << { name: :clok, color: ResistorColors[digit.to_i], full_text: (i<4)?'█':'▝' }
+	end
+	clok
+end
+
 def get_output_string
 	stuff = []
 	stuff << { name: :disk_info, instance: '/', color: '#666666', full_text: disk_space }
@@ -137,12 +160,12 @@ def get_output_string
 		stuff << ({name: :bluetooth, instance: :disabled, color: '#444444', full_text: 'BT'})
 	end
 	stuff << ( { name: :ethernet, instance: 'tun0', color: '#ffff00', full_text: "VPN: #{eth_pretty('tun0', 'wg-velo', 'wg-home')}" } rescue { name: :ethernet, instance: 'tun0', color: '#444444', full_text: 'VPN: down' } )
-	stuff << ( { name: :ethernet, instance: 'enp3s0f0', color: '#6677cc', full_text: "E: #{eth_pretty('enp3s0f0', 'enp4s0')}" } rescue { name: :ethernet, instance: 'enp3s0f0', color: '#444444', full_text: 'E: down' } )
+	stuff << ( { name: :ethernet, instance: 'eth0', color: '#6677cc', full_text: "E: #{eth_pretty('bond0', 'en0', 'enp4s0')}" } rescue { name: :ethernet, instance: 'eth0', color: '#444444', full_text: 'E: down' } )
 	begin
-		wlan = wlan_pretty 'wlp1s0'
-		stuff <<  { name: :wireless, instance: 'wlp1s0', color: (wlan=='off' ? '#444444' : '#6677cc'), full_text: "W: #{wlan}" }
+		wlan = wlan_pretty 'wlan0'
+		stuff <<  { name: :wireless, instance: 'wlan0', color: (wlan=='off' ? '#444444' : '#6677cc'), full_text: "W: #{wlan}" }
 	rescue
-		stuff << { name: :wireless, instance: 'wlp3s0', color: '#880000', full_text: 'W: down' }
+		stuff << { name: :wireless, instance: 'wlan0', color: '#880000', full_text: "W: down" }
 	end
 	stuff.last.merge!({separator: true})
 
@@ -168,6 +191,7 @@ def get_output_string
 	stuff.last.merge!({color: '#dd8800'}) if @cached_volume_percent.include? 'Mute'
 
 	stuff << { name: :tztime, instance: :local, full_text: date_pretty }
+	stuff.append(*ohm_clock)
 	stuff << timer if timer
 	stuff << ssh_agent if ssh_agent
 	stuff << { name: :caps, full_text: "CAPS", background: '#aa0000' } if @capslock
@@ -195,7 +219,7 @@ redraw = Thread.new do
 	$stdout.syswrite "[\n"
 	first = true
 	loop do
-		$stdout.syswrite "#{first ? '' : ','}#{get_output_string}\n"
+		$stdout.syswrite("#{first ? '' : ','}#{get_output_string}\n")
 		first = false
 		t = Time.now
 		sleep (5 - (t.sec + t.subsec) % 5)
@@ -214,8 +238,7 @@ loop do
 			p = Process.spawn("echo #{get_ip click['instance']} | xclip -selection clipboard || true")
 			Process.detach(p)
 		elsif click['button'] == 1 && click['name'] == 'bluetooth'
-			$stderr.puts "bluetoothctl <<< 'power #{click['instance']!='enabled' ? 'on' : 'off'}' | cat"
-			p = `bluetoothctl <<< 'power #{click['instance']!='enabled' ? 'on' : 'off'}' | cat`
+			p = `bluetoothctl power #{click['instance']!='enabled' ? 'on' : 'off'} | cat`
 			$stderr.puts p
 		elsif click['button'] == 1 && click['name'] == 'tztime'
 			p = Process.spawn(%q{terminator --geometry='560x440' -bm --title='Calendar' --role=calendar -e 'bash -c "echo -ne \"\\033]0;Calendar\\007\"; cal -n 9 -S; read -n 1"'})
@@ -276,29 +299,29 @@ loop do
 end
 end
 
-$xkb_pid = nil
-at_exit { $xkb_pid && Process.kill('TERM', $xkb_pid) }
-receive_xkb_events = Thread.new do
-loop do
-	IO.popen "stdbuf -oL xkbevd" do |io|
-		$xkb_pid = io.pid
-		Process.detach($xkb_pid)
-		watching = false
-		io.each do |line|
-			if watching
-				@capslock = line.include? 'new state= 0x00000001'
-				watching = false
-				redraw.run
-			else
-				watching = true if line.include? 'XkbIndicatorStateNotify'
-			end
-		end
-	end
-end
-end
+#$xkb_pid = nil
+#at_exit { $xkb_pid && Process.kill('TERM', $xkb_pid) }
+#receive_xkb_events = Thread.new do
+#loop do
+#	IO.popen "stdbuf -oL xkbevd" do |io|
+#		$xkb_pid = io.pid
+#		Process.detach($xkb_pid)
+#		watching = false
+#		io.each do |line|
+#			if watching
+#				@capslock = line.include? 'new state= 0x00000001'
+#				watching = false
+#				redraw.run
+#			else
+#				watching = true if line.include? 'XkbIndicatorStateNotify'
+#			end
+#		end
+#	end
+#end
+#end
 
 receive_alsa_events.join
 receive_alsa_dev_events.join
-receive_xkb_events.join
+#receive_xkb_events.join
 receive_click_events.join
 redraw.join
