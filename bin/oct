@@ -1,0 +1,56 @@
+#!/bin/zsh -e
+
+USAGE="$0 <card> [oct-args...]"
+_usage()(
+	>&2 echo "Usage: $USAGE"
+	>&2 echo "  <card> can be:"
+	>&2 echo "  - a | auto"
+	>&2 echo "  - l | laptop"
+	>&2 echo "  - d | desktop"
+	>&2 echo "  - . for an oct command that doesn't take a --card"
+	exit 1
+)
+
+CARD_DESKTOP='0006:07019259'
+CARD_LAPTOP='0006:13828974'
+TRY_CARDS=($CARD_DESKTOP $CARD_LAPTOP)
+
+which_card="$1"
+[[ -n "$which_card" ]] || _usage
+shift
+
+auto_card()(
+	list="$(oct . list)"
+	for try_card in $TRY_CARDS; do
+		if [[ $list =~ "$try_card" ]]; then
+			echo $try_card
+			exit
+		fi
+	done
+	>&2 echo "Couldn't find either card!"
+	exit 2
+)
+
+card_id=''
+case "$which_card" in
+	desktop|d)
+		card_id="$CARD_DESKTOP"
+		;;
+	laptop|l)
+		card_id="$CARD_LAPTOP"
+		;;
+	auto|a)
+		card_id="$(auto_card)"
+		;;
+	.)
+		card_id=''
+		;;
+	*)
+		_usage
+esac
+
+if [[ -n "$card_id" ]]; then
+	exec ~/.cargo/bin/oct "$@" --card "$card_id"
+else
+	exec ~/.cargo/bin/oct "$@"
+fi
