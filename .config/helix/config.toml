@@ -1,0 +1,6 @@
+[keys.insert]
+C-c = "normal_mode"
+
+[keys.normal.S-z]
+S-z = ":write-quit"
+S-q = ":quit!"
