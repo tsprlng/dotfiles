@@ -46,7 +46,7 @@ zsh_theme_git() {
 		|| return
 	echo -n " %{$fg[red]%}${ref#refs/heads/}"
 	if [[ -z "$ZSH_SKIP_GIT_STATUS" ]]; then
-		local stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=dirty . 2>/dev/null || echo FAIL)"
+		local stuff="$(timeout 1 git status --porcelain -unormal --ignore-submodules=all . 2>/dev/null || echo FAIL)"
 		if [[ -n "$stuff" ]]; then
 			echo -n " %{$fg[yellow]%}"
 			if [[ "$stuff" == FAIL ]]; then echo -n "X"; else
@@ -135,7 +135,7 @@ dotfiles() {
 	if [[ "$1" == 'tig' ]]; then
 		GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ "$@"
 	else
-		GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git "$@"
+		GIT_DIR=~/.dotfiles.git GIT_WORK_TREE=~ git-safe "$@"
 	fi
 }
 compdef dotfiles=git
@@ -167,6 +167,9 @@ alias grep='grep --color=auto'
 alias mux='pgrep -lfa "ssh.*\[mux\]" -u "$USER"'
 alias gtypist='gtypist -wSbq'
 
+alias rga='rg --hidden --no-ignore'
+
+compdef git-safe='git'
 alias git='git-safe'  # prevent committing with -a after partial staging
 alias g='git-safe'
 alias gs='git status -s'
@@ -176,17 +179,28 @@ alias gdc='git diff -D --cached'
 alias gp='git pull'
 alias gpr='git pull --rebase'
 alias gup='git update'
-alias gmm='git mm'
+alias gcm='git commit'
+alias gam='git commit --amend'
+alias gaam='git commit -a --amend'
 alias gpp='git push'
 alias gppf='git push --force-with-lease'
 alias tiga='tig --branches --remotes --tags'
 alias tigc='git tigc'
 alias gka='gitk --all&'
+alias gdiff='git diff --no-index'
+alias gct='git checkout'
 gcw() {
 	cd $(git checkout-worktree "$@")
 }
+g..() {
+	cd $(git rev-parse --show-toplevel); pwd
+}
+alias g@='g @'
+alias g@@='g @@'
 
-alias ack-tf='ack **/*.tfstate.d(P:--ignore-dir:) --ignore-file "match:/.*\.tfstate/"'
+alias j='jj'
+alias jt='jjtig'
+alias js='jj status'
 
 alias boldaws='aws --profile bold'
 

@@ -1,11 +1,11 @@
 #!/usr/bin/ruby
 remote = `git config remote.origin.url`
-if remote.match /.*@([^:]+):(.*)\.git/
+if remote.match /^.*@([^:]+):(.*?)(\.git)?$/
   puts url = "http://#{$~[1]}/#{$~[2]}"
-  `xdg-open #{url}`
-elsif remote.match /[^@]*@(.*)\.git/
+  #`chrome #{url}`
+elsif remote.match /^[^@]*@(.*?)(\.git)?$/
   puts url = "http://#{$~[1]}"
-  `xdg-open #{url}`
+  #`chrome #{url}`
 else
   puts 'i am confused about ' + remote
 end

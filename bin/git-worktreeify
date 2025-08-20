@@ -1,8 +1,16 @@
 #!/bin/zsh -e
 
-repo_to_mangle="$1"
-[[ -e _worktree_init ]] && exit 1
-[[ -d "$repo_to_mangle" ]] || exit 1
+repo_to_mangle="$1"  # just give it '.'
+[[ -e _worktree_init ]] && (
+	>&2 echo 'Looks like the script crashed last time -- sorry, you need to fix it somehow.'
+	exit 1
+)
+[[ -d "$repo_to_mangle" ]] || (
+	>&2 echo "Usage: $0 <repo-directory>"
+	>&2 echo "  Best to run inside the existing repo, and pass \`.\`"
+	>&2 echo "  (I can't really remember why I did it this way, but it works.)"
+	exit 1
+)
 
 mkdir _worktree_init
 find "$repo_to_mangle" -maxdepth 1 -mindepth 1 \! -name _worktree_init -execdir mv '{}' "$PWD/_worktree_init/" \;

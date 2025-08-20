@@ -1,2 +1,3 @@
 #!/bin/zsh -e
-exec git rev-parse --short @
+rev="${1:-@}"
+exec git rev-parse --short "$rev"

@@ -3,6 +3,8 @@
 base="$1"
 new_branch="$2"
 
+alias chromium='gtk-launch google-chrome.desktop'
+
 if [[ -z "$base" ]]; then
 	>&2 echo "Usage: $0 <base-branch> [<new-branch>]"
 	exit 4
