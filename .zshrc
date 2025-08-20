@@ -18,6 +18,7 @@ zsh_theme_pwd() {
 	fi
 }
 zsh_theme_ssh() {
+	printf "\e[?1004l"  # turn off focus reporting each time we return to prompt  # TODO put this somewhere better
 	[ $SSH_CONNECTION ] && echo "%{$bg[yellow]%}%{$fg_bold[black]%}%M%{$reset_color%}:"
 }
 zsh_theme_rvm_venv() {
