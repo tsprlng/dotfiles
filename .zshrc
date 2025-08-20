@@ -178,7 +178,7 @@ alias gup='git update'
 alias gmm='git mm'
 alias gpp='git push'
 alias gppf='git push --force-with-lease'
-alias tiga='tig --all'
+alias tiga='tig --branches --remotes --tags'
 alias tigc='git tigc'
 alias gka='gitk --all&'
 gcw() {
