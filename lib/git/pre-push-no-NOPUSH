@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+$stdin.each_line do |l|
+	local_name, local_rev, remote_name, remote_rev = l.strip.split
+	next if local_rev.chars.all?{|c| c==?0 }
+
+	system "git log --oneline #{local_rev} | grep -F NOPUSH"
+
+	if $?.success?
+		puts " ^-- Commits on #{local_name} can't be pushed"
+		exit 1
+	end
+end

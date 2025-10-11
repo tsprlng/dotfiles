@@ -1,0 +1,16 @@
+[user]
+	name = Tom Spurling
+[rebase]
+	autosquash = true
+	autostash = true
+[diff "gpg"]
+	textconv = gpg -v
+[core]
+	excludesfile = /home/tds/.cvsignore
+[init]
+	defaultbranch = main
+	templatedir = /home/tds/lib/git/template
+[diff]
+	colormoved = zebra
+[commit]
+	gpgsign = false
